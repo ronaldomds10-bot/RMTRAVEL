@@ -16,6 +16,11 @@ export const platformPages: PlatformPage[] = [
     description: 'Área reservada para acompanhar e gerenciar bilhetes.'
   },
   {
+    path: '/platform/tickets/import',
+    title: 'Importar emissão',
+    description: 'Importação de emissões por companhia, localizador e sobrenome.'
+  },
+  {
     path: '/platform/customers',
     title: 'Clientes',
     description: 'Cadastro e acompanhamento de clientes.'

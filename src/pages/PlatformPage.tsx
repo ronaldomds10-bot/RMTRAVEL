@@ -3,6 +3,7 @@ import { PagePlaceholder } from '../components/PagePlaceholder';
 import { platformPages } from '../data/pages';
 import { CustomersPage } from './CustomersPage';
 import { DashboardPage } from './DashboardPage';
+import { TicketImportPage } from './TicketImportPage';
 import { TicketsPage } from './TicketsPage';
 
 export function PlatformPage() {
@@ -23,6 +24,10 @@ export function PlatformPage() {
 
   if (page.path === '/platform/tickets') {
     return <TicketsPage />;
+  }
+
+  if (page.path === '/platform/tickets/import') {
+    return <TicketImportPage />;
   }
 
   return <PagePlaceholder page={page} />;
