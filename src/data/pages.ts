@@ -92,6 +92,21 @@ export const platformPages: PlatformPage[] = [
     description: 'Dados e preferências do usuário.'
   },
   {
+    path: '/platform/settings/company',
+    title: 'Minha empresa',
+    description: 'Dados da empresa ou agencia usados na plataforma.'
+  },
+  {
+    path: '/platform/settings/subscription',
+    title: 'Minha assinatura',
+    description: 'Plano e status visual da assinatura.'
+  },
+  {
+    path: '/platform/settings/support',
+    title: 'Atendimento',
+    description: 'Canais de suporte e orientacoes de atendimento.'
+  },
+  {
     path: '/platform/settings/my-company',
     title: 'Minha empresa',
     description: 'Informações institucionais da empresa.'

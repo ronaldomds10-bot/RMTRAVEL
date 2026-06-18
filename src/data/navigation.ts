@@ -69,9 +69,9 @@ export const navigationGroups: NavigationGroup[] = [
     items: [
       { title: 'Configurações', path: '/platform/settings', icon: Settings },
       { title: 'Meu perfil', path: '/platform/settings/profile', icon: CircleUserRound },
-      { title: 'Minha empresa', path: '/platform/settings/my-company', icon: FileText },
-      { title: 'Minha assinatura', path: '/platform/settings/my-subscription', icon: CreditCard },
-      { title: 'Atendimento', path: '/platform/voajet-resolve', icon: Headphones }
+      { title: 'Minha empresa', path: '/platform/settings/company', icon: FileText },
+      { title: 'Minha assinatura', path: '/platform/settings/subscription', icon: CreditCard },
+      { title: 'Atendimento', path: '/platform/settings/support', icon: Headphones }
     ]
   }
 ];
