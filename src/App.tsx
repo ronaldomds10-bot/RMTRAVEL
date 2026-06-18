@@ -1,5 +1,10 @@
 import { Outlet } from 'react-router-dom';
+import { AuthProvider } from './auth/AuthProvider';
 
 export function App() {
-  return <Outlet />;
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
 }

@@ -4,6 +4,8 @@ import { PlatformLayout } from '../layouts/PlatformLayout';
 import { platformPages } from '../data/pages';
 import { PlatformPage } from '../pages/PlatformPage';
 import { TicketPublicPage } from '../pages/TicketPublicPage';
+import { LoginPage } from '../pages/LoginPage';
+import { RequireAuth } from '../auth/RequireAuth';
 
 export const router = createBrowserRouter([
   {
@@ -14,8 +16,16 @@ export const router = createBrowserRouter([
         element: <Navigate to="/platform" replace />
       },
       {
+        path: '/login',
+        element: <LoginPage />
+      },
+      {
         path: '/platform',
-        element: <PlatformLayout />,
+        element: (
+          <RequireAuth>
+            <PlatformLayout />
+          </RequireAuth>
+        ),
         children: [
           {
             index: true,

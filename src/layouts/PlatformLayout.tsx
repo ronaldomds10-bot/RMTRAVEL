@@ -1,6 +1,7 @@
-import { Bell, Menu, PanelLeftClose, Search } from 'lucide-react';
+import { Bell, LogOut, Menu, PanelLeftClose, Search } from 'lucide-react';
 import { useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
 import { BrandMark } from '../components/BrandMark';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -10,8 +11,21 @@ import { cn } from '../lib/cn';
 
 export function PlatformLayout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut, user } = useAuth();
   const currentPage = platformPages.find((page) => page.path === location.pathname);
+
+  async function handleSignOut() {
+    try {
+      setLogoutError(null);
+      await signOut();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      setLogoutError(error instanceof Error ? error.message : 'Nao foi possivel sair.');
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 text-ink-900">
@@ -67,7 +81,24 @@ export function PlatformLayout() {
               <Bell size={18} aria-hidden="true" />
               <span className="absolute right-2 top-2 size-2 rounded-full bg-brand-600" />
             </button>
+
+            <div className="hidden min-w-0 flex-col text-right sm:flex">
+              <span className="max-w-48 truncate text-sm font-semibold text-ink-900">
+                {user?.email ?? 'Usuario'}
+              </span>
+              <span className="text-xs text-ink-500">Sessao ativa</span>
+            </div>
+
+            <Button onClick={handleSignOut} size="sm" variant="secondary">
+              <LogOut size={16} aria-hidden="true" />
+              Sair
+            </Button>
           </div>
+          {logoutError ? (
+            <div className="border-t border-red-100 bg-red-50 px-4 py-2 text-sm text-red-700 sm:px-6 lg:px-8">
+              {logoutError}
+            </div>
+          ) : null}
         </header>
 
         <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
@@ -137,9 +168,9 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
 
       <div className="border-t border-slate-200 p-4">
         <div className="rounded-lg bg-slate-50 p-3">
-          <p className="text-sm font-semibold text-ink-900">Ambiente inicial</p>
+          <p className="text-sm font-semibold text-ink-900">Ambiente autenticado</p>
           <p className="mt-1 text-xs leading-5 text-ink-500">
-            Sem APIs, autenticação ou integrações externas nesta etapa.
+            Sessao Supabase ativa para acessar a plataforma.
           </p>
           <Button className="mt-3 w-full" size="sm" variant="secondary">
             Ver plano visual
