@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { PagePlaceholder } from '../components/PagePlaceholder';
 import { platformPages } from '../data/pages';
+import { AnalyticsPage } from './AnalyticsPage';
 import { CustomersPage } from './CustomersPage';
 import { DashboardPage } from './DashboardPage';
 import { SalesPage } from './SalesPage';
@@ -38,6 +39,10 @@ export function PlatformPage() {
 
   if (page.path === '/platform/site') {
     return <SitePage />;
+  }
+
+  if (page.path === '/platform/analytics') {
+    return <AnalyticsPage />;
   }
 
   return <PagePlaceholder page={page} />;
