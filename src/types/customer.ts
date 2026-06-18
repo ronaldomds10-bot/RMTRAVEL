@@ -46,3 +46,8 @@ export type Customer = {
   financial: CustomerFinancial;
   notes: string;
 };
+
+export type CustomerRecord = Customer & {
+  createdAt: string;
+  updatedAt: string;
+};

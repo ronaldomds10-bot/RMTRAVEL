@@ -1,4 +1,4 @@
-import { Eye, MessageCircle, Pencil } from 'lucide-react';
+import { Eye, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { CustomerMobileCard } from './CustomerMobileCard';
@@ -9,9 +9,19 @@ import { formatCurrency } from '../../lib/formatters';
 
 type CustomerTableProps = {
   customers: Customer[];
+  onDelete: (customer: Customer) => void;
+  onEdit: (customer: Customer) => void;
+  onView: (customer: Customer) => void;
+  onWhatsApp: (customer: Customer) => void;
 };
 
-export function CustomerTable({ customers }: CustomerTableProps) {
+export function CustomerTable({
+  customers,
+  onDelete,
+  onEdit,
+  onView,
+  onWhatsApp
+}: CustomerTableProps) {
   return (
     <>
       <div className="space-y-3 lg:hidden">
@@ -20,7 +30,14 @@ export function CustomerTable({ customers }: CustomerTableProps) {
           <p className="text-sm text-ink-500">{customers.length} clientes encontrados</p>
         </div>
         {customers.map((customer) => (
-          <CustomerMobileCard customer={customer} key={customer.id} />
+          <CustomerMobileCard
+            customer={customer}
+            key={customer.id}
+            onDelete={onDelete}
+            onEdit={onEdit}
+            onView={onView}
+            onWhatsApp={onWhatsApp}
+          />
         ))}
       </div>
 
@@ -93,6 +110,7 @@ export function CustomerTable({ customers }: CustomerTableProps) {
                           aria-label={`Ver detalhes de ${customer.personal.fullName}`}
                           variant="ghost"
                           size="sm"
+                          onClick={() => onView(customer)}
                         >
                           <Eye size={16} aria-hidden="true" />
                         </Button>
@@ -100,6 +118,7 @@ export function CustomerTable({ customers }: CustomerTableProps) {
                           aria-label={`Editar ${customer.personal.fullName}`}
                           variant="ghost"
                           size="sm"
+                          onClick={() => onEdit(customer)}
                         >
                           <Pencil size={16} aria-hidden="true" />
                         </Button>
@@ -107,8 +126,17 @@ export function CustomerTable({ customers }: CustomerTableProps) {
                           aria-label={`Abrir WhatsApp de ${customer.personal.fullName}`}
                           variant="ghost"
                           size="sm"
+                          onClick={() => onWhatsApp(customer)}
                         >
                           <MessageCircle size={16} aria-hidden="true" />
+                        </Button>
+                        <Button
+                          aria-label={`Excluir ${customer.personal.fullName}`}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(customer)}
+                        >
+                          <Trash2 size={16} aria-hidden="true" />
                         </Button>
                       </div>
                     </td>

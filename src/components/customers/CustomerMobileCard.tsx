@@ -1,4 +1,4 @@
-import { Eye, MessageCircle, Pencil } from 'lucide-react';
+import { Eye, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card, CardContent } from '../ui/Card';
 import { CustomerStatusBadge } from './CustomerStatusBadge';
@@ -8,9 +8,19 @@ import { formatCurrency } from '../../lib/formatters';
 
 type CustomerMobileCardProps = {
   customer: Customer;
+  onDelete: (customer: Customer) => void;
+  onEdit: (customer: Customer) => void;
+  onView: (customer: Customer) => void;
+  onWhatsApp: (customer: Customer) => void;
 };
 
-export function CustomerMobileCard({ customer }: CustomerMobileCardProps) {
+export function CustomerMobileCard({
+  customer,
+  onDelete,
+  onEdit,
+  onView,
+  onWhatsApp
+}: CustomerMobileCardProps) {
   return (
     <Card>
       <CardContent className="space-y-4">
@@ -45,18 +55,22 @@ export function CustomerMobileCard({ customer }: CustomerMobileCardProps) {
           ))}
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          <Button variant="secondary" size="sm">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Button variant="secondary" size="sm" onClick={() => onView(customer)}>
             <Eye size={15} aria-hidden="true" />
             Ver
           </Button>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => onEdit(customer)}>
             <Pencil size={15} aria-hidden="true" />
             Editar
           </Button>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => onWhatsApp(customer)}>
             <MessageCircle size={15} aria-hidden="true" />
             WhatsApp
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => onDelete(customer)}>
+            <Trash2 size={15} aria-hidden="true" />
+            Excluir
           </Button>
         </div>
       </CardContent>
