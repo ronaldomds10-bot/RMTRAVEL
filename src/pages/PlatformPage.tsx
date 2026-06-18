@@ -1,0 +1,29 @@
+import { Navigate, useLocation } from 'react-router-dom';
+import { PagePlaceholder } from '../components/PagePlaceholder';
+import { platformPages } from '../data/pages';
+import { CustomersPage } from './CustomersPage';
+import { DashboardPage } from './DashboardPage';
+import { TicketsPage } from './TicketsPage';
+
+export function PlatformPage() {
+  const location = useLocation();
+  const page = platformPages.find((item) => item.path === location.pathname);
+
+  if (!page) {
+    return <Navigate to="/platform" replace />;
+  }
+
+  if (page.path === '/platform') {
+    return <DashboardPage />;
+  }
+
+  if (page.path === '/platform/customers') {
+    return <CustomersPage />;
+  }
+
+  if (page.path === '/platform/tickets') {
+    return <TicketsPage />;
+  }
+
+  return <PagePlaceholder page={page} />;
+}

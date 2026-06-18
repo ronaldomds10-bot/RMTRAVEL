@@ -1,0 +1,70 @@
+import {
+  BadgeDollarSign,
+  Bell,
+  Building2,
+  ChartNoAxesCombined,
+  CircleUserRound,
+  CreditCard,
+  FileText,
+  Gauge,
+  Headphones,
+  Plane,
+  ReceiptText,
+  Settings,
+  ShieldCheck,
+  Ticket,
+  UsersRound,
+  WalletCards
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+export type NavigationItem = {
+  title: string;
+  path: string;
+  icon: LucideIcon;
+};
+
+export type NavigationGroup = {
+  title: string;
+  items: NavigationItem[];
+};
+
+export const navigationGroups: NavigationGroup[] = [
+  {
+    title: 'Operação',
+    items: [
+      { title: 'Painel', path: '/platform', icon: Gauge },
+      { title: 'Bilhetes', path: '/platform/tickets', icon: Ticket },
+      { title: 'Clientes', path: '/platform/customers', icon: UsersRound },
+      { title: 'Vendas', path: '/platform/emissions/sales', icon: Plane }
+    ]
+  },
+  {
+    title: 'Gestão',
+    items: [
+      { title: 'Financeiro', path: '/platform/financial', icon: BadgeDollarSign },
+      { title: 'Faturas', path: '/platform/invoices', icon: ReceiptText },
+      { title: 'Fornecedores', path: '/platform/fornecedores', icon: Building2 },
+      { title: 'Monitoramento', path: '/platform/monitoring', icon: ChartNoAxesCombined },
+      { title: 'Notificações', path: '/platform/notifications', icon: Bell }
+    ]
+  },
+  {
+    title: 'Milhas',
+    items: [
+      { title: 'Gestão de milhas', path: '/platform/miles-management', icon: WalletCards },
+      { title: 'Compras de milhas', path: '/platform/miles-purchases', icon: CreditCard },
+      { title: 'Transferência de milhas', path: '/platform/miles-transfer', icon: ShieldCheck }
+    ]
+  },
+  {
+    title: 'Configurações',
+    items: [
+      { title: 'Configurações', path: '/platform/settings', icon: Settings },
+      { title: 'Meu perfil', path: '/platform/settings/profile', icon: CircleUserRound },
+      { title: 'Minha empresa', path: '/platform/settings/my-company', icon: FileText },
+      { title: 'Minha assinatura', path: '/platform/settings/my-subscription', icon: CreditCard },
+      { title: 'Atendimento', path: '/platform/voajet-resolve', icon: Headphones }
+    ]
+  }
+];

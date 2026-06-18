@@ -1,0 +1,93 @@
+export type PlatformPage = {
+  path: string;
+  title: string;
+  description: string;
+};
+
+export const platformPages: PlatformPage[] = [
+  {
+    path: '/platform',
+    title: 'Painel',
+    description: 'Visão geral operacional da RMTRAVEL.'
+  },
+  {
+    path: '/platform/tickets',
+    title: 'Bilhetes',
+    description: 'Área reservada para acompanhar e gerenciar bilhetes.'
+  },
+  {
+    path: '/platform/customers',
+    title: 'Clientes',
+    description: 'Cadastro e acompanhamento de clientes.'
+  },
+  {
+    path: '/platform/financial',
+    title: 'Financeiro',
+    description: 'Resumo financeiro e controles de pagamento.'
+  },
+  {
+    path: '/platform/invoices',
+    title: 'Faturas',
+    description: 'Consulta e organização de faturas.'
+  },
+  {
+    path: '/platform/monitoring',
+    title: 'Monitoramento',
+    description: 'Acompanhamento de eventos e indicadores importantes.'
+  },
+  {
+    path: '/platform/notifications',
+    title: 'Notificações',
+    description: 'Central de alertas e comunicações.'
+  },
+  {
+    path: '/platform/settings',
+    title: 'Configurações',
+    description: 'Preferências gerais da plataforma.'
+  },
+  {
+    path: '/platform/settings/profile',
+    title: 'Meu perfil',
+    description: 'Dados e preferências do usuário.'
+  },
+  {
+    path: '/platform/settings/my-company',
+    title: 'Minha empresa',
+    description: 'Informações institucionais da empresa.'
+  },
+  {
+    path: '/platform/settings/my-subscription',
+    title: 'Minha assinatura',
+    description: 'Plano, cobrança e status da assinatura.'
+  },
+  {
+    path: '/platform/emissions/sales',
+    title: 'Vendas',
+    description: 'Fluxo inicial para emissões e vendas.'
+  },
+  {
+    path: '/platform/miles-management',
+    title: 'Gestão de milhas',
+    description: 'Controle de saldos, programas e movimentações.'
+  },
+  {
+    path: '/platform/miles-purchases',
+    title: 'Compras de milhas',
+    description: 'Registro e acompanhamento de compras.'
+  },
+  {
+    path: '/platform/miles-transfer',
+    title: 'Transferência de milhas',
+    description: 'Operações de transferência entre programas.'
+  },
+  {
+    path: '/platform/fornecedores',
+    title: 'Fornecedores',
+    description: 'Base inicial para gestão de fornecedores.'
+  },
+  {
+    path: '/platform/voajet-resolve',
+    title: 'Atendimento',
+    description: 'Espaço reservado para suporte e resolução de solicitações.'
+  }
+];
