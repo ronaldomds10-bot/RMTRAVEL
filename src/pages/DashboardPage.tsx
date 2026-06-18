@@ -1,7 +1,6 @@
 import { ArrowRight, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { dashboardMetrics, quickActions, recentActivities, upcomingItems } from '../data/mock';
@@ -17,22 +16,24 @@ export function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {dashboardMetrics.map((metric) => (
-          <Card key={metric.label}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-ink-500">{metric.label}</p>
-                  <p className="mt-3 text-2xl font-semibold text-ink-900">{metric.value}</p>
+          <Link className="block" key={metric.label} to={metric.path}>
+            <Card className="h-full transition hover:border-brand-200 hover:bg-brand-50">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-ink-500">{metric.label}</p>
+                    <p className="mt-3 text-2xl font-semibold text-ink-900">{metric.value}</p>
+                  </div>
+                  <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-slate-50 text-brand-700 ring-1 ring-slate-200">
+                    <metric.icon size={20} aria-hidden="true" />
+                  </div>
                 </div>
-                <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-slate-50 text-brand-700 ring-1 ring-slate-200">
-                  <metric.icon size={20} aria-hidden="true" />
-                </div>
-              </div>
-              <Badge className="mt-4" tone={metric.tone}>
-                {metric.change}
-              </Badge>
-            </CardContent>
-          </Card>
+                <Badge className="mt-4" tone={metric.tone}>
+                  {metric.change}
+                </Badge>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
@@ -43,12 +44,15 @@ export function DashboardPage() {
               <h2 className="text-base font-semibold text-ink-900">Atalhos rápidos</h2>
               <p className="text-sm text-ink-500">Entradas visuais para as áreas prioritárias.</p>
             </div>
-            <Button variant="ghost" size="sm">
+            <Link
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-ink-700 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+              to="/platform/settings"
+            >
               Organizar
-            </Button>
+            </Link>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {quickActions.map((action) => (
                 <Link
                   className="group rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:border-brand-200 hover:bg-brand-50"

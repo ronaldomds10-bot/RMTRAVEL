@@ -10,6 +10,12 @@ type PagePlaceholderProps = {
 };
 
 export function PagePlaceholder({ page }: PagePlaceholderProps) {
+  const upcomingFeatures = page.upcomingFeatures ?? [
+    'Mapear requisitos',
+    'Definir campos principais',
+    'Validar fluxo inicial'
+  ];
+
   return (
     <section className="space-y-6">
       <PageHeader title={page.title} description={page.description} badge="Tela planejada" />
@@ -23,6 +29,19 @@ export function PagePlaceholder({ page }: PagePlaceholderProps) {
           />
         </CardContent>
       </Card>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {upcomingFeatures.map((feature) => (
+          <Card key={feature}>
+            <CardContent>
+              <p className="text-sm font-semibold text-ink-900">{feature}</p>
+              <p className="mt-2 text-sm leading-5 text-ink-500">
+                Funcionalidade prevista para evoluir esta area sem regras complexas nesta etapa.
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <Card>
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -1,9 +1,12 @@
 import {
   BadgeDollarSign,
+  BarChart3,
   ClipboardCheck,
-  Plane,
+  Globe2,
+  Settings,
   Ticket as TicketIcon,
-  UsersRound
+  UsersRound,
+  WalletCards
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { Customer } from '../types/customer';
@@ -16,6 +19,7 @@ export type DashboardMetric = {
   change: string;
   tone: Tone;
   icon: LucideIcon;
+  path: string;
 };
 
 export type QuickAction = {
@@ -46,49 +50,59 @@ export const dashboardMetrics: DashboardMetric[] = [
     value: '128',
     change: '+12 nesta semana',
     tone: 'green',
-    icon: TicketIcon
+    icon: TicketIcon,
+    path: '/platform/tickets'
   },
   {
     label: 'Clientes ativos',
     value: '342',
     change: 'Base mockada',
     tone: 'blue',
-    icon: UsersRound
+    icon: UsersRound,
+    path: '/platform/customers'
   },
   {
     label: 'Receita prevista',
     value: 'R$ 84,2 mil',
     change: 'Indicador inicial',
     tone: 'amber',
-    icon: BadgeDollarSign
+    icon: BadgeDollarSign,
+    path: '/platform/analytics'
   },
   {
     label: 'Operacoes pendentes',
     value: '18',
     change: 'Sem integracao',
     tone: 'slate',
-    icon: ClipboardCheck
+    icon: ClipboardCheck,
+    path: '/platform/site'
   }
 ];
 
 export const quickActions: QuickAction[] = [
   {
-    title: 'Novo fluxo de venda',
-    description: 'Estrutura reservada para emissoes futuras.',
-    path: '/platform/emissions/sales',
-    icon: Plane
+    title: 'Site',
+    description: 'Gerencie a base da presenca digital da RMTRAVEL.',
+    path: '/platform/site',
+    icon: Globe2
   },
   {
-    title: 'Consultar bilhetes',
-    description: 'Atalho para a base inicial de bilhetes.',
-    path: '/platform/tickets',
-    icon: TicketIcon
+    title: 'Analise e Gestao',
+    description: 'Acompanhe indicadores e proximas visoes gerenciais.',
+    path: '/platform/analytics',
+    icon: BarChart3
   },
   {
-    title: 'Revisar financeiro',
-    description: 'Area preparada para indicadores e faturas.',
-    path: '/platform/financial',
-    icon: BadgeDollarSign
+    title: 'Milhas',
+    description: 'Organize a futura operacao de programas e saldos.',
+    path: '/platform/miles',
+    icon: WalletCards
+  },
+  {
+    title: 'Configuracoes',
+    description: 'Acesse preferencias, empresa, perfil e assinatura.',
+    path: '/platform/settings',
+    icon: Settings
   }
 ];
 

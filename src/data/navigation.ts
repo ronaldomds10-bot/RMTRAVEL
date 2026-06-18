@@ -1,5 +1,6 @@
 import {
   BadgeDollarSign,
+  BarChart3,
   Bell,
   Building2,
   ChartNoAxesCombined,
@@ -7,6 +8,7 @@ import {
   CreditCard,
   FileText,
   Gauge,
+  Globe2,
   Headphones,
   Plane,
   ReceiptText,
@@ -38,12 +40,14 @@ export const navigationGroups: NavigationGroup[] = [
       { title: 'Bilhetes', path: '/platform/tickets', icon: Ticket },
       { title: 'Importar emissão', path: '/platform/tickets/import', icon: UploadCloud },
       { title: 'Clientes', path: '/platform/customers', icon: UsersRound },
+      { title: 'Site', path: '/platform/site', icon: Globe2 },
       { title: 'Vendas', path: '/platform/emissions/sales', icon: Plane }
     ]
   },
   {
     title: 'Gestão',
     items: [
+      { title: 'Analise e Gestao', path: '/platform/analytics', icon: BarChart3 },
       { title: 'Financeiro', path: '/platform/financial', icon: BadgeDollarSign },
       { title: 'Faturas', path: '/platform/invoices', icon: ReceiptText },
       { title: 'Fornecedores', path: '/platform/fornecedores', icon: Building2 },
@@ -54,6 +58,7 @@ export const navigationGroups: NavigationGroup[] = [
   {
     title: 'Milhas',
     items: [
+      { title: 'Milhas', path: '/platform/miles', icon: WalletCards },
       { title: 'Gestão de milhas', path: '/platform/miles-management', icon: WalletCards },
       { title: 'Compras de milhas', path: '/platform/miles-purchases', icon: CreditCard },
       { title: 'Transferência de milhas', path: '/platform/miles-transfer', icon: ShieldCheck }

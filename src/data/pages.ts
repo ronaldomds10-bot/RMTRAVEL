@@ -2,6 +2,7 @@ export type PlatformPage = {
   path: string;
   title: string;
   description: string;
+  upcomingFeatures?: string[];
 };
 
 export const platformPages: PlatformPage[] = [
@@ -26,6 +27,36 @@ export const platformPages: PlatformPage[] = [
     description: 'Cadastro e acompanhamento de clientes.'
   },
   {
+    path: '/platform/site',
+    title: 'Site',
+    description: 'Base para gerenciar a presenca digital e os conteudos publicados da RMTRAVEL.',
+    upcomingFeatures: [
+      'Paginas institucionais',
+      'Vitrine de pacotes e ofertas',
+      'Conteudos e chamadas comerciais'
+    ]
+  },
+  {
+    path: '/platform/analytics',
+    title: 'Analise e Gestao',
+    description: 'Area inicial para indicadores, gestao operacional e acompanhamento executivo.',
+    upcomingFeatures: [
+      'Indicadores por periodo',
+      'Relatorios de performance',
+      'Visao consolidada de operacoes'
+    ]
+  },
+  {
+    path: '/platform/miles',
+    title: 'Milhas',
+    description: 'Base para organizar saldos, compras, transferencias e oportunidades com milhas.',
+    upcomingFeatures: [
+      'Carteira de programas',
+      'Compras e transferencias',
+      'Historico de movimentacoes'
+    ]
+  },
+  {
     path: '/platform/financial',
     title: 'Financeiro',
     description: 'Resumo financeiro e controles de pagamento.'
@@ -48,7 +79,12 @@ export const platformPages: PlatformPage[] = [
   {
     path: '/platform/settings',
     title: 'Configurações',
-    description: 'Preferências gerais da plataforma.'
+    description: 'Preferências gerais da plataforma.',
+    upcomingFeatures: [
+      'Perfil e acessos',
+      'Dados da empresa',
+      'Plano e preferencias da conta'
+    ]
   },
   {
     path: '/platform/settings/profile',
