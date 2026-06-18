@@ -4,6 +4,7 @@ import { platformPages } from '../data/pages';
 import { CustomersPage } from './CustomersPage';
 import { DashboardPage } from './DashboardPage';
 import { SalesPage } from './SalesPage';
+import { SitePage } from './SitePage';
 import { TicketImportPage } from './TicketImportPage';
 import { TicketsPage } from './TicketsPage';
 
@@ -33,6 +34,10 @@ export function PlatformPage() {
 
   if (page.path === '/platform/emissions/sales') {
     return <SalesPage />;
+  }
+
+  if (page.path === '/platform/site') {
+    return <SitePage />;
   }
 
   return <PagePlaceholder page={page} />;
