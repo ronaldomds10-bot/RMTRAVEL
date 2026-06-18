@@ -1,5 +1,6 @@
-import type { Ticket, TicketSearchInput } from '../../types/ticket';
-import { mockTicketProvider } from './mockTicketProvider';
+import type { Ticket, TicketProviderSource, TicketSearchInput } from '../../types/ticket';
+import { availableTicketProviders, providerRouter } from './providers/providerRouter';
+import { TicketProviderError } from './providers/types';
 
 export type TicketSearchApiResponse =
   | {
@@ -9,6 +10,8 @@ export type TicketSearchApiResponse =
   | {
       data: null;
       error: string;
+      code?: string;
+      provider?: TicketProviderSource;
     };
 
 export type TicketSearchApiResult = {
@@ -28,6 +31,7 @@ function getStringField(payload: unknown, field: keyof TicketSearchInput) {
 export function validateTicketSearchInput(payload: unknown): TicketSearchInput | string {
   const locator = getStringField(payload, 'locator');
   const surname = getStringField(payload, 'surname');
+  const provider = getStringField(payload, 'provider');
 
   if (!locator) {
     return 'Localizador e obrigatorio.';
@@ -45,9 +49,14 @@ export function validateTicketSearchInput(payload: unknown): TicketSearchInput |
     return 'Sobrenome deve ter entre 2 e 80 caracteres.';
   }
 
+  if (provider && !availableTicketProviders.includes(provider as TicketProviderSource)) {
+    return 'Provider de busca invalido.';
+  }
+
   return {
     locator: locator.toUpperCase(),
-    surname
+    surname,
+    provider: provider ? (provider as TicketProviderSource) : 'mock'
   };
 }
 
@@ -64,7 +73,25 @@ export async function handleTicketSearch(payload: unknown): Promise<TicketSearch
     };
   }
 
-  const ticket = await mockTicketProvider.searchByLocator(input);
+  let ticket: Ticket | null;
+
+  try {
+    ticket = await providerRouter.searchByLocator(input);
+  } catch (error) {
+    if (error instanceof TicketProviderError) {
+      return {
+        status: error.code === 'not_configured' ? 501 : 502,
+        body: {
+          data: null,
+          error: error.message,
+          code: error.code,
+          provider: error.provider
+        }
+      };
+    }
+
+    throw error;
+  }
 
   if (!ticket) {
     return {

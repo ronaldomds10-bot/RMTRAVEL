@@ -2,6 +2,7 @@ import type { TicketProvider } from './TicketProvider';
 import type { TicketSearchApiResponse } from './searchTickets';
 
 export const apiTicketProvider: TicketProvider = {
+  provider: 'mock',
   async searchByLocator(input) {
     const response = await fetch('/api/tickets/search', {
       method: 'POST',

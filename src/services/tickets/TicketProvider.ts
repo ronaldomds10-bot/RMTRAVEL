@@ -1,5 +1,1 @@
-import type { Ticket, TicketSearchInput } from '../../types/ticket';
-
-export interface TicketProvider {
-  searchByLocator(input: TicketSearchInput): Promise<Ticket | null>;
-}
+export type { TicketSearchProvider as TicketProvider } from './providers/types';

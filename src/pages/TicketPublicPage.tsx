@@ -1,5 +1,5 @@
 import { Download, MessageCircle, Plane } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { tickets } from '../data/tickets';
 import { formatCurrency } from '../lib/formatters';
 import { generateTicketPdf } from '../services/tickets/ticketPdf';
+import { ticketRepository } from '../services/tickets/ticketRepositoryAdapter';
 import type { Ticket, TicketSegment, TicketStatus } from '../types/ticket';
 
 const statusTone: Record<TicketStatus, 'green' | 'blue' | 'amber' | 'slate'> = {
@@ -19,11 +20,50 @@ const statusTone: Record<TicketStatus, 'green' | 'blue' | 'amber' | 'slate'> = {
 export function TicketPublicPage() {
   const { id } = useParams();
   const normalizedId = (id ?? '').trim().toLowerCase();
-  const ticket =
+  const mockTicket =
     tickets.find(
       (item) =>
         item.id.toLowerCase() === normalizedId || item.locator.toLowerCase() === normalizedId
     ) ?? null;
+  const [savedTicket, setSavedTicket] = useState<Ticket | null>(null);
+  const [isLoadingSavedTicket, setIsLoadingSavedTicket] = useState(!mockTicket);
+  const ticket = mockTicket ?? savedTicket;
+
+  useEffect(() => {
+    if (!normalizedId || mockTicket) {
+      setIsLoadingSavedTicket(false);
+      setSavedTicket(null);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingSavedTicket(true);
+
+    ticketRepository
+      .listTickets()
+      .then((records) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setSavedTicket(
+          records.find(
+            (record) =>
+              record.id.toLowerCase() === normalizedId ||
+              record.locator.toLowerCase() === normalizedId
+          ) ?? null
+        );
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingSavedTicket(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [mockTicket, normalizedId]);
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 text-ink-900 sm:px-6 lg:px-8">
@@ -43,9 +83,30 @@ export function TicketPublicPage() {
           </Link>
         </header>
 
-        {ticket ? <TicketPublicDetails ticket={ticket} /> : <TicketNotFound searchedId={id ?? ''} />}
+        {isLoadingSavedTicket ? (
+          <TicketLoading />
+        ) : ticket ? (
+          <TicketPublicDetails ticket={ticket} />
+        ) : (
+          <TicketNotFound searchedId={id ?? ''} />
+        )}
       </div>
     </main>
+  );
+}
+
+function TicketLoading() {
+  return (
+    <Card>
+      <CardContent className="flex min-h-80 items-center justify-center text-center">
+        <div>
+          <div className="mx-auto grid size-12 place-items-center rounded-lg bg-white text-brand-700 shadow-sm ring-1 ring-slate-200">
+            <Plane className="animate-pulse" size={22} aria-hidden="true" />
+          </div>
+          <p className="mt-4 text-sm font-semibold text-ink-900">Carregando bilhete</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

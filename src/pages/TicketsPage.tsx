@@ -1,5 +1,18 @@
-import { FileText, Loader2, Plane, RefreshCw, Save, Search, XCircle } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
+import {
+  Edit,
+  Eye,
+  FileText,
+  Loader2,
+  MessageCircle,
+  Plane,
+  RefreshCw,
+  Save,
+  Search,
+  Trash2,
+  X,
+  XCircle
+} from 'lucide-react';
+import { FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
@@ -37,11 +50,30 @@ export function TicketsPage() {
   const [searchMessage, setSearchMessage] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [ticketActionMessage, setTicketActionMessage] = useState<string | null>(null);
+  const [viewingTicket, setViewingTicket] = useState<TicketRecord | null>(null);
+  const [editingTicket, setEditingTicket] = useState<TicketRecord | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isSavingTicket, setIsSavingTicket] = useState(false);
 
   const exampleTicket = tickets[0];
   const isLoading = searchStatus === 'loading';
   const hasTypedSearch = input.surname.trim().length > 0 || input.locator.trim().length > 0;
   const canSearch = input.surname.trim().length > 0 && input.locator.trim().length > 0 && !isLoading;
+  const selectedSavedTicket = useMemo(() => {
+    if (!selectedTicket) {
+      return null;
+    }
+
+    return (
+      savedTickets.find(
+        (ticket) =>
+          ticket.locator.toLowerCase() === selectedTicket.locator.toLowerCase() &&
+          ticket.surname.toLowerCase() === selectedTicket.surname.toLowerCase()
+      ) ?? null
+    );
+  }, [savedTickets, selectedTicket]);
+  const isSelectedTicketSaved = Boolean(selectedSavedTicket);
 
   useEffect(() => {
     refreshSavedTickets();
@@ -127,30 +159,94 @@ export function TicketsPage() {
       return;
     }
 
-    const alreadySaved = savedTickets.some(
-      (ticket) =>
-        ticket.locator.toLowerCase() === selectedTicket.locator.toLowerCase() &&
-        ticket.surname.toLowerCase() === selectedTicket.surname.toLowerCase()
-    );
-    const record = await ticketRepository.createTicket(selectedTicket);
-    await refreshSavedTickets();
-    const nextDiagnostics = getTicketRepositoryDiagnostics();
-    setRepositoryDiagnostics(nextDiagnostics);
+    if (isSelectedTicketSaved) {
+      setSaveMessage(`Reserva ${selectedTicket.locator} ja esta salva.`);
+      return;
+    }
+
+    try {
+      setIsSavingTicket(true);
+      const record = await ticketRepository.createTicket(selectedTicket);
+      await refreshSavedTickets();
+      const nextDiagnostics = getTicketRepositoryDiagnostics();
+      setRepositoryDiagnostics(nextDiagnostics);
+      const alreadySaved = false;
 
     setSaveMessage(
       alreadySaved
         ? `Reserva ${record.locator} ja estava salva.`
         : `Reserva ${record.locator} salva no repositório ${nextDiagnostics.activeRepository === 'supabase' ? 'Supabase' : 'local'}.`
+      );
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : 'Nao foi possivel salvar o bilhete.');
+    } finally {
+      setIsSavingTicket(false);
+    }
+  }
+
+  async function handleGeneratePdf(ticket: Ticket | null = selectedSavedTicket ?? selectedTicket) {
+    try {
+      setPdfError(null);
+      setIsGeneratingPdf(true);
+      await generateTicketPdf({ ticket });
+    } catch (error) {
+      setPdfError(error instanceof Error ? error.message : 'Nao foi possivel gerar o PDF.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }
+
+  function handleWhatsApp(ticket: Ticket) {
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(createTicketWhatsAppMessage(ticket))}`,
+      '_blank',
+      'noopener,noreferrer'
     );
   }
 
-  async function handleGeneratePdf() {
-    try {
-      setPdfError(null);
-      await generateTicketPdf({ ticket: selectedTicket });
-    } catch (error) {
-      setPdfError(error instanceof Error ? error.message : 'Nao foi possivel gerar o PDF.');
+  async function handleDeleteTicket(ticket: TicketRecord) {
+    const confirmed = window.confirm(
+      `Excluir o bilhete ${ticket.locator} de ${ticket.passenger} ${ticket.surname}?`
+    );
+
+    if (!confirmed) {
+      return;
     }
+
+    const deleted = await ticketRepository.deleteTicket(ticket.id);
+    await refreshSavedTickets();
+    setViewingTicket((current) => (current?.id === ticket.id ? null : current));
+    setEditingTicket((current) => (current?.id === ticket.id ? null : current));
+    setTicketActionMessage(
+      deleted
+        ? `Bilhete ${ticket.locator} excluido.`
+        : `Bilhete ${ticket.locator} nao foi encontrado para exclusao.`
+    );
+  }
+
+  async function handleUpdateTicket(ticket: TicketRecord, changes: EditableTicketFields) {
+    const updatedTicket: Ticket = {
+      ...ticket,
+      passenger: changes.passenger.trim(),
+      surname: changes.surname.trim(),
+      locator: changes.locator.trim().toUpperCase(),
+      airline: changes.airline.trim(),
+      status: changes.status,
+      amount: Number(changes.amount),
+      observations: changes.observations.trim()
+    };
+
+    const updatedRecord = await ticketRepository.updateTicket(ticket.id, updatedTicket);
+    await refreshSavedTickets();
+
+    if (updatedRecord) {
+      setEditingTicket(null);
+      setViewingTicket((current) => (current?.id === ticket.id ? updatedRecord : current));
+      setTicketActionMessage(`Bilhete ${updatedRecord.locator} atualizado.`);
+      return;
+    }
+
+    setTicketActionMessage(`Nao foi possivel atualizar o bilhete ${ticket.locator}.`);
   }
 
   return (
@@ -242,8 +338,12 @@ export function TicketsPage() {
       {!isLoading && selectedTicket ? (
         <TicketDetails
           ticket={selectedTicket}
-          onGeneratePdf={handleGeneratePdf}
+          isGeneratingPdf={isGeneratingPdf}
+          isSaved={isSelectedTicketSaved}
+          isSaving={isSavingTicket}
+          onGeneratePdf={() => handleGeneratePdf()}
           onSaveTicket={handleSaveTicket}
+          onWhatsApp={() => handleWhatsApp(selectedSavedTicket ?? selectedTicket)}
           pdfError={pdfError}
           saveMessage={saveMessage}
         />
@@ -288,7 +388,37 @@ export function TicketsPage() {
         </Card>
       ) : null}
 
-      <SavedTicketsList tickets={savedTickets} repositoryMode={repositoryDiagnostics.activeRepository} />
+      <SavedTicketsList
+        actionMessage={ticketActionMessage}
+        tickets={savedTickets}
+        repositoryMode={repositoryDiagnostics.activeRepository}
+        onDeleteTicket={handleDeleteTicket}
+        onEditTicket={setEditingTicket}
+        onGeneratePdf={handleGeneratePdf}
+        onViewTicket={setViewingTicket}
+        onWhatsApp={handleWhatsApp}
+      />
+
+      {viewingTicket ? (
+        <TicketViewModal
+          ticket={viewingTicket}
+          onClose={() => setViewingTicket(null)}
+          onEdit={() => {
+            setEditingTicket(viewingTicket);
+            setViewingTicket(null);
+          }}
+          onGeneratePdf={() => handleGeneratePdf(viewingTicket)}
+          onWhatsApp={() => handleWhatsApp(viewingTicket)}
+        />
+      ) : null}
+
+      {editingTicket ? (
+        <TicketEditModal
+          ticket={editingTicket}
+          onClose={() => setEditingTicket(null)}
+          onSave={handleUpdateTicket}
+        />
+      ) : null}
     </section>
   );
 }
@@ -372,16 +502,24 @@ function SearchMessage({ status, message }: SearchMessageProps) {
 
 type TicketDetailsProps = {
   ticket: Ticket;
+  isGeneratingPdf: boolean;
+  isSaved: boolean;
+  isSaving: boolean;
   onGeneratePdf: () => void;
   onSaveTicket: () => void;
+  onWhatsApp: () => void;
   pdfError: string | null;
   saveMessage: string | null;
 };
 
 function TicketDetails({
   ticket,
+  isGeneratingPdf,
+  isSaved,
+  isSaving,
   onGeneratePdf,
   onSaveTicket,
+  onWhatsApp,
   pdfError,
   saveMessage
 }: TicketDetailsProps) {
@@ -456,13 +594,17 @@ function TicketDetails({
           {ticket.rawResponse ? <InfoRow label="Raw response" value="Disponivel no mock" /> : null}
           {saveMessage ? <p className="text-sm font-medium text-brand-700">{saveMessage}</p> : null}
           {pdfError ? <p className="text-sm font-medium text-red-600">{pdfError}</p> : null}
-          <Button className="w-full" onClick={onSaveTicket}>
+          <Button className="w-full" disabled={isSaved || isSaving} onClick={onSaveTicket}>
             <Save size={16} aria-hidden="true" />
-            Salvar bilhete
+            {isSaved ? 'Bilhete salvo' : isSaving ? 'Salvando...' : 'Salvar bilhete'}
           </Button>
-          <Button className="w-full" variant="secondary" onClick={onGeneratePdf}>
+          <Button className="w-full" variant="secondary" onClick={onWhatsApp}>
+            <MessageCircle size={16} aria-hidden="true" />
+            WhatsApp
+          </Button>
+          <Button className="w-full" variant="secondary" onClick={onGeneratePdf} disabled={isGeneratingPdf}>
             <FileText size={16} aria-hidden="true" />
-            Gerar PDF
+            {isGeneratingPdf ? 'Gerando PDF...' : 'Gerar PDF'}
           </Button>
         </CardContent>
       </Card>
@@ -471,15 +613,31 @@ function TicketDetails({
 }
 
 type SavedTicketsListProps = {
+  actionMessage: string | null;
   tickets: TicketRecord[];
   repositoryMode: 'supabase' | 'local';
+  onDeleteTicket: (ticket: TicketRecord) => void;
+  onEditTicket: (ticket: TicketRecord) => void;
+  onGeneratePdf: (ticket: TicketRecord) => void;
+  onViewTicket: (ticket: TicketRecord) => void;
+  onWhatsApp: (ticket: TicketRecord) => void;
 };
 
-function SavedTicketsList({ tickets, repositoryMode }: SavedTicketsListProps) {
+function SavedTicketsList({
+  actionMessage,
+  tickets,
+  repositoryMode,
+  onDeleteTicket,
+  onEditTicket,
+  onGeneratePdf,
+  onViewTicket,
+  onWhatsApp
+}: SavedTicketsListProps) {
   return (
     <Card>
       <CardHeader>
         <h2 className="text-base font-semibold text-ink-900">Bilhetes salvos</h2>
+        {actionMessage ? <p className="text-sm font-medium text-brand-700">{actionMessage}</p> : null}
         <p className="text-sm text-ink-500">
           Registros carregados do repositório {repositoryMode === 'supabase' ? 'Supabase' : 'local'}.
         </p>
@@ -494,17 +652,18 @@ function SavedTicketsList({ tickets, repositoryMode }: SavedTicketsListProps) {
           />
         ) : (
           <div className="overflow-hidden rounded-lg border border-slate-200">
-            <div className="hidden grid-cols-[1.2fr_1fr_1fr_0.8fr] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400 md:grid">
+            <div className="hidden grid-cols-[1.2fr_0.8fr_0.9fr_0.7fr_1.5fr] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400 md:grid">
               <span>Passageiro</span>
               <span>Localizador</span>
               <span>Companhia</span>
               <span>Status</span>
+              <span>Acoes</span>
             </div>
             <div className="divide-y divide-slate-200">
               {tickets.map((ticket) => (
                 <div
-                  className="grid gap-3 px-4 py-4 text-sm md:grid-cols-[1.2fr_1fr_1fr_0.8fr] md:items-center"
-                  key={`${ticket.locator}-${ticket.surname}`}
+                  className="grid gap-3 px-4 py-4 text-sm md:grid-cols-[1.2fr_0.8fr_0.9fr_0.7fr_1.5fr] md:items-center"
+                  key={ticket.id}
                 >
                   <div>
                     <p className="font-semibold text-ink-900">
@@ -517,6 +676,28 @@ function SavedTicketsList({ tickets, repositoryMode }: SavedTicketsListProps) {
                   <div>
                     <Badge tone={statusTone[ticket.status]}>{ticket.status}</Badge>
                   </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => onViewTicket(ticket)}>
+                      <Eye size={14} aria-hidden="true" />
+                      Ver
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => onEditTicket(ticket)}>
+                      <Edit size={14} aria-hidden="true" />
+                      Editar
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => onWhatsApp(ticket)}>
+                      <MessageCircle size={14} aria-hidden="true" />
+                      WhatsApp
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => onGeneratePdf(ticket)}>
+                      <FileText size={14} aria-hidden="true" />
+                      PDF
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => onDeleteTicket(ticket)}>
+                      <Trash2 size={14} aria-hidden="true" />
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -524,6 +705,267 @@ function SavedTicketsList({ tickets, repositoryMode }: SavedTicketsListProps) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function createTicketWhatsAppMessage(ticket: Ticket) {
+  const firstSegment = ticket.segments[0];
+  const route = firstSegment
+    ? `${firstSegment.origin.iata} -> ${firstSegment.destination.iata} em ${firstSegment.departure.date} ${firstSegment.departure.time}`
+    : 'Trecho nao informado';
+
+  return [
+    `Bilhete RMTRAVEL - ${ticket.passenger} ${ticket.surname}`,
+    `Localizador: ${ticket.locator}`,
+    `Companhia: ${ticket.airline}`,
+    `Status: ${ticket.status}`,
+    `Trecho: ${route}`,
+    `Valor: ${formatCurrency(ticket.amount)}`
+  ].join('\n');
+}
+
+type ModalShellProps = {
+  children: ReactNode;
+  onClose: () => void;
+  title: string;
+};
+
+function ModalShell({ children, onClose, title }: ModalShellProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <h2 className="text-base font-semibold text-ink-900">{title}</h2>
+          <button
+            className="grid size-9 place-items-center rounded-lg text-ink-500 transition hover:bg-slate-100 hover:text-ink-900"
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar modal"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+type TicketViewModalProps = {
+  ticket: TicketRecord;
+  onClose: () => void;
+  onEdit: () => void;
+  onGeneratePdf: () => void;
+  onWhatsApp: () => void;
+};
+
+function TicketViewModal({
+  ticket,
+  onClose,
+  onEdit,
+  onGeneratePdf,
+  onWhatsApp
+}: TicketViewModalProps) {
+  return (
+    <ModalShell title={`Bilhete ${ticket.locator}`} onClose={onClose}>
+      <div className="space-y-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-lg font-semibold text-ink-900">
+              {ticket.passenger} {ticket.surname}
+            </p>
+            <p className="mt-1 text-sm text-ink-500">
+              {ticket.airline} | Provider {ticket.provider} | Salvo em {formatDateTime(ticket.createdAt)}
+            </p>
+          </div>
+          <Badge tone={statusTone[ticket.status]}>{ticket.status}</Badge>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <InfoRow label="Localizador" value={ticket.locator} />
+          <InfoRow label="Valor" value={formatCurrency(ticket.amount)} />
+          <InfoRow label="Atualizado em" value={formatDateTime(ticket.updatedAt)} />
+          <InfoRow label="Bilhete" value={ticket.id} />
+        </div>
+
+        <div className="space-y-3">
+          {ticket.segments.map((segment) => (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4" key={segment.id}>
+              <p className="text-sm font-semibold text-ink-900">Voo {segment.flightNumber}</p>
+              <p className="mt-2 text-sm text-ink-700">
+                {segment.origin.iata} &gt; {segment.destination.iata} | {segment.departure.date} {segment.departure.time}
+              </p>
+              <p className="mt-1 text-sm text-ink-500">
+                Bagagem: {segment.baggage.carryOn} / {segment.baggage.checked}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <InfoRow label="Observacoes" value={ticket.observations || 'Sem observacoes.'} />
+
+        <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
+          <Button variant="secondary" onClick={onEdit}>
+            <Edit size={16} aria-hidden="true" />
+            Editar
+          </Button>
+          <Button variant="secondary" onClick={onWhatsApp}>
+            <MessageCircle size={16} aria-hidden="true" />
+            WhatsApp
+          </Button>
+          <Button onClick={onGeneratePdf}>
+            <FileText size={16} aria-hidden="true" />
+            Gerar PDF
+          </Button>
+        </div>
+      </div>
+    </ModalShell>
+  );
+}
+
+type EditableTicketFields = {
+  passenger: string;
+  surname: string;
+  locator: string;
+  airline: string;
+  status: TicketStatus;
+  amount: string;
+  observations: string;
+};
+
+type TicketEditModalProps = {
+  ticket: TicketRecord;
+  onClose: () => void;
+  onSave: (ticket: TicketRecord, changes: EditableTicketFields) => Promise<void>;
+};
+
+const fieldClass =
+  'mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-ink-900 outline-none transition focus:border-brand-300 focus:ring-4 focus:ring-brand-50';
+
+function TicketEditModal({ ticket, onClose, onSave }: TicketEditModalProps) {
+  const [fields, setFields] = useState<EditableTicketFields>({
+    passenger: ticket.passenger,
+    surname: ticket.surname,
+    locator: ticket.locator,
+    airline: ticket.airline,
+    status: ticket.status,
+    amount: String(ticket.amount),
+    observations: ticket.observations
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const amount = Number(fields.amount);
+  const canSubmit =
+    fields.passenger.trim().length > 0 &&
+    fields.surname.trim().length > 0 &&
+    fields.locator.trim().length >= 4 &&
+    fields.airline.trim().length > 0 &&
+    Number.isFinite(amount) &&
+    amount >= 0 &&
+    !isSubmitting;
+
+  function updateField<Field extends keyof EditableTicketFields>(
+    field: Field,
+    value: EditableTicketFields[Field]
+  ) {
+    setFields((current) => ({ ...current, [field]: value }));
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!canSubmit) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    await onSave(ticket, fields);
+    setIsSubmitting(false);
+  }
+
+  return (
+    <ModalShell title={`Editar ${ticket.locator}`} onClose={onClose}>
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label>
+            <span className="text-sm font-semibold text-ink-700">Nome</span>
+            <input
+              className={fieldClass}
+              value={fields.passenger}
+              onChange={(event) => updateField('passenger', event.target.value)}
+            />
+          </label>
+          <label>
+            <span className="text-sm font-semibold text-ink-700">Sobrenome</span>
+            <input
+              className={fieldClass}
+              value={fields.surname}
+              onChange={(event) => updateField('surname', event.target.value)}
+            />
+          </label>
+          <label>
+            <span className="text-sm font-semibold text-ink-700">Localizador</span>
+            <input
+              className={`${fieldClass} uppercase`}
+              value={fields.locator}
+              onChange={(event) => updateField('locator', event.target.value.toUpperCase())}
+            />
+          </label>
+          <label>
+            <span className="text-sm font-semibold text-ink-700">Companhia</span>
+            <input
+              className={fieldClass}
+              value={fields.airline}
+              onChange={(event) => updateField('airline', event.target.value)}
+            />
+          </label>
+          <label>
+            <span className="text-sm font-semibold text-ink-700">Status</span>
+            <select
+              className={fieldClass}
+              value={fields.status}
+              onChange={(event) => updateField('status', event.target.value as TicketStatus)}
+            >
+              {(Object.keys(statusTone) as TicketStatus[]).map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="text-sm font-semibold text-ink-700">Valor</span>
+            <input
+              className={fieldClass}
+              min="0"
+              step="0.01"
+              type="number"
+              value={fields.amount}
+              onChange={(event) => updateField('amount', event.target.value)}
+            />
+          </label>
+        </div>
+
+        <label className="block">
+          <span className="text-sm font-semibold text-ink-700">Observacoes</span>
+          <textarea
+            className="mt-2 min-h-28 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none transition focus:border-brand-300 focus:ring-4 focus:ring-brand-50"
+            value={fields.observations}
+            onChange={(event) => updateField('observations', event.target.value)}
+          />
+        </label>
+
+        <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
+          <Button variant="secondary" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button disabled={!canSubmit} type="submit">
+            <Save size={16} aria-hidden="true" />
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
+      </form>
+    </ModalShell>
   );
 }
 

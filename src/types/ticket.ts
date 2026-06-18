@@ -1,6 +1,7 @@
 export type TicketSearchInput = {
   surname: string;
   locator: string;
+  provider?: TicketProviderSource;
 };
 
 export type TicketStatus = 'confirmado' | 'pendente' | 'cancelado' | 'emitido';
