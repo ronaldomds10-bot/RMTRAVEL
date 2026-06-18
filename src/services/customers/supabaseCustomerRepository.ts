@@ -51,26 +51,20 @@ type SupabaseDeleteQuery = PromiseLike<SupabaseResponse<null>> & {
 type CustomerTableRow = {
   id: string;
   user_id: string;
-  full_name: string;
-  document_type: string;
-  document_number: string;
+  name: string;
+  document: string | null;
   customer_type: string;
-  email: string;
-  phone: string;
+  email: string | null;
+  phone: string | null;
   preferred_channel: string;
-  city: string;
-  state: string;
-  country: string;
+  city: string | null;
+  state: string | null;
+  country: string | null;
   status: string;
   tags: unknown;
-  last_interaction: string;
-  next_action: string;
-  trip_in_progress: boolean;
-  preferred_destinations: unknown;
-  open_amount: number;
-  currency: string;
-  has_pending_payment: boolean;
-  notes: string;
+  travel_profile: unknown;
+  financial: unknown;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -141,12 +135,29 @@ function stringArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function stringValue(value: unknown, fallback = '') {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function booleanValue(value: unknown, fallback = false) {
+  return typeof value === 'boolean' ? value : fallback;
+}
+
+function numberValue(value: unknown, fallback = 0) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
 function toCustomerTableInsert(customer: Customer, userId: string): CustomerTableInsert {
   return {
     user_id: userId,
-    full_name: customer.personal.fullName,
-    document_type: customer.personal.documentType,
-    document_number: customer.personal.documentNumber,
+    name: customer.personal.fullName,
+    document: customer.personal.documentNumber,
     customer_type: customer.personal.type,
     email: customer.contact.email,
     phone: customer.contact.phone,
@@ -156,13 +167,14 @@ function toCustomerTableInsert(customer: Customer, userId: string): CustomerTabl
     country: customer.address.country,
     status: customer.travelProfile.status,
     tags: customer.travelProfile.tags,
-    last_interaction: customer.travelProfile.lastInteraction,
-    next_action: customer.travelProfile.nextAction,
-    trip_in_progress: customer.travelProfile.tripInProgress,
-    preferred_destinations: customer.travelProfile.preferredDestinations,
-    open_amount: customer.financial.openAmount,
-    currency: customer.financial.currency,
-    has_pending_payment: customer.financial.hasPendingPayment,
+    travel_profile: {
+      documentType: customer.personal.documentType,
+      lastInteraction: customer.travelProfile.lastInteraction,
+      nextAction: customer.travelProfile.nextAction,
+      tripInProgress: customer.travelProfile.tripInProgress,
+      preferredDestinations: customer.travelProfile.preferredDestinations
+    },
+    financial: customer.financial,
     notes: customer.notes
   };
 }
@@ -173,38 +185,41 @@ function toCustomerTableUpdate(customer: Customer): CustomerTableUpdate {
 }
 
 function toCustomerRecord(row: CustomerTableRow): CustomerRecord {
+  const travelProfile = objectValue(row.travel_profile);
+  const financial = objectValue(row.financial);
+
   return {
     id: row.id,
     personal: {
-      fullName: row.full_name,
-      documentType: row.document_type as CustomerDocumentType,
-      documentNumber: row.document_number,
+      fullName: row.name,
+      documentType: stringValue(travelProfile.documentType, 'CPF') as CustomerDocumentType,
+      documentNumber: row.document ?? '',
       type: row.customer_type as CustomerType
     },
     contact: {
-      email: row.email,
-      phone: row.phone,
+      email: row.email ?? '',
+      phone: row.phone ?? '',
       preferredChannel: row.preferred_channel as Customer['contact']['preferredChannel']
     },
     address: {
-      city: row.city,
-      state: row.state,
-      country: row.country
+      city: row.city ?? '',
+      state: row.state ?? '',
+      country: row.country ?? 'Brasil'
     },
     travelProfile: {
       status: row.status as CustomerStatus,
       tags: stringArray(row.tags) as CustomerTag[],
-      lastInteraction: row.last_interaction,
-      nextAction: row.next_action,
-      tripInProgress: row.trip_in_progress,
-      preferredDestinations: stringArray(row.preferred_destinations)
+      lastInteraction: stringValue(travelProfile.lastInteraction),
+      nextAction: stringValue(travelProfile.nextAction),
+      tripInProgress: booleanValue(travelProfile.tripInProgress),
+      preferredDestinations: stringArray(travelProfile.preferredDestinations)
     },
     financial: {
-      openAmount: Number(row.open_amount),
-      currency: row.currency as 'BRL',
-      hasPendingPayment: row.has_pending_payment
+      openAmount: numberValue(financial.openAmount),
+      currency: stringValue(financial.currency, 'BRL') as 'BRL',
+      hasPendingPayment: booleanValue(financial.hasPendingPayment)
     },
-    notes: row.notes,
+    notes: row.notes ?? '',
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -218,7 +233,7 @@ export function createSupabaseCustomerRepository(
       const response = await client
         .from('customers')
         .select('*')
-        .order('full_name', { ascending: true });
+        .order('name', { ascending: true });
 
       assertNoError(response, 'Nao foi possivel listar clientes no Supabase');
 
