@@ -4,6 +4,7 @@ import { platformPages } from '../data/pages';
 import { AnalyticsPage } from './AnalyticsPage';
 import { CustomersPage } from './CustomersPage';
 import { DashboardPage } from './DashboardPage';
+import { FinancialPage } from './FinancialPage';
 import { MilesPage } from './MilesPage';
 import { SalesPage } from './SalesPage';
 import {
@@ -51,6 +52,10 @@ export function PlatformPage() {
 
   if (page.path === '/platform/analytics') {
     return <AnalyticsPage />;
+  }
+
+  if (page.path === '/platform/financial') {
+    return <FinancialPage />;
   }
 
   if (page.path === '/platform/miles') {
