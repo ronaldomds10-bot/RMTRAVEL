@@ -6,6 +6,7 @@ import { CustomersPage } from './CustomersPage';
 import { DashboardPage } from './DashboardPage';
 import { FinancialPage } from './FinancialPage';
 import { InvoicesPage } from './InvoicesPage';
+import { MilesManagementPage } from './MilesManagementPage';
 import { MilesPage } from './MilesPage';
 import { SalesPage } from './SalesPage';
 import {
@@ -66,6 +67,10 @@ export function PlatformPage() {
 
   if (page.path === '/platform/miles') {
     return <MilesPage />;
+  }
+
+  if (page.path === '/platform/miles-management') {
+    return <MilesManagementPage />;
   }
 
   if (page.path === '/platform/fornecedores') {
