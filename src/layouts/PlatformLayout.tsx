@@ -1,5 +1,5 @@
 import { Bell, LogOut, Menu, PanelLeftClose, Search } from 'lucide-react';
-import { useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { BrandMark } from '../components/BrandMark';
@@ -12,6 +12,7 @@ import { cn } from '../lib/cn';
 export function PlatformLayout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
@@ -27,10 +28,34 @@ export function PlatformLayout() {
     }
   }
 
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return;
+    }
+
+    const navigationItems = navigationGroups.flatMap((group) => group.items);
+    const matchingNavigationItem = navigationItems.find((item) =>
+      `${item.title} ${item.path}`.toLowerCase().includes(normalizedSearch)
+    );
+    const matchingPage = platformPages.find((page) =>
+      `${page.title} ${page.description} ${page.path}`.toLowerCase().includes(normalizedSearch)
+    );
+
+    navigate(matchingNavigationItem?.path ?? matchingPage?.path ?? '/platform');
+    setSearchTerm('');
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 text-ink-900">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-slate-200 bg-white lg:block">
-        <SidebarContent onNavigate={() => setIsMobileNavOpen(false)} />
+        <SidebarContent
+          onNavigate={() => setIsMobileNavOpen(false)}
+          onSubscriptionClick={() => navigate('/platform/settings/subscription')}
+        />
       </aside>
 
       {isMobileNavOpen ? (
@@ -42,7 +67,10 @@ export function PlatformLayout() {
             onClick={() => setIsMobileNavOpen(false)}
           />
           <aside className="relative h-full w-[min(21rem,88vw)] border-r border-slate-200 bg-white shadow-2xl">
-            <SidebarContent onNavigate={() => setIsMobileNavOpen(false)} />
+            <SidebarContent
+              onNavigate={() => setIsMobileNavOpen(false)}
+              onSubscriptionClick={() => navigate('/platform/settings/subscription')}
+            />
           </aside>
         </div>
       ) : null}
@@ -68,15 +96,25 @@ export function PlatformLayout() {
               </p>
             </div>
 
-            <div className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-ink-500 md:flex">
+            <form
+              className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-ink-500 md:flex"
+              onSubmit={handleSearchSubmit}
+            >
               <Search size={16} aria-hidden="true" />
-              <span>Buscar na plataforma</span>
-            </div>
+              <input
+                aria-label="Buscar na plataforma"
+                className="h-full min-w-0 flex-1 bg-transparent text-sm text-ink-700 outline-none placeholder:text-ink-500"
+                placeholder="Buscar na plataforma"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+            </form>
 
             <button
               aria-label="Notificações"
               className="relative grid size-10 place-items-center rounded-lg border border-slate-200 text-ink-700 hover:bg-slate-50"
               type="button"
+              onClick={() => navigate('/platform/notifications')}
             >
               <Bell size={18} aria-hidden="true" />
               <span className="absolute right-2 top-2 size-2 rounded-full bg-brand-600" />
@@ -111,9 +149,15 @@ export function PlatformLayout() {
 
 type SidebarContentProps = {
   onNavigate: () => void;
+  onSubscriptionClick: () => void;
 };
 
-function SidebarContent({ onNavigate }: SidebarContentProps) {
+function SidebarContent({ onNavigate, onSubscriptionClick }: SidebarContentProps) {
+  function handleSubscriptionClick() {
+    onSubscriptionClick();
+    onNavigate();
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
@@ -172,7 +216,7 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
           <p className="mt-1 text-xs leading-5 text-ink-500">
             Sessao Supabase ativa para acessar a plataforma.
           </p>
-          <Button className="mt-3 w-full" size="sm" variant="secondary">
+          <Button className="mt-3 w-full" size="sm" variant="secondary" onClick={handleSubscriptionClick}>
             Ver plano visual
           </Button>
         </div>

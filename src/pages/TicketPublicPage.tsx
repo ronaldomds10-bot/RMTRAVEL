@@ -6,6 +6,7 @@ import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { tickets } from '../data/tickets';
 import { formatCurrency } from '../lib/formatters';
+import { siteRepository } from '../services/site/siteRepositoryAdapter';
 import { generateTicketPdf } from '../services/tickets/ticketPdf';
 import { ticketRepository } from '../services/tickets/ticketRepositoryAdapter';
 import type { Ticket, TicketSegment, TicketStatus } from '../types/ticket';
@@ -16,6 +17,8 @@ const statusTone: Record<TicketStatus, 'green' | 'blue' | 'amber' | 'slate'> = {
   pendente: 'amber',
   cancelado: 'slate'
 };
+
+const defaultAgencyWhatsapp = '+55 11 99999-9999';
 
 export function TicketPublicPage() {
   const { id } = useParams();
@@ -117,6 +120,28 @@ type TicketPublicDetailsProps = {
 function TicketPublicDetails({ ticket }: TicketPublicDetailsProps) {
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [agencyWhatsapp, setAgencyWhatsapp] = useState(defaultAgencyWhatsapp);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    siteRepository
+      .getSiteConfiguration()
+      .then((configuration) => {
+        if (isMounted && configuration?.whatsapp.trim()) {
+          setAgencyWhatsapp(configuration.whatsapp);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setAgencyWhatsapp(defaultAgencyWhatsapp);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   async function handleDownloadPdf() {
     try {
@@ -128,6 +153,23 @@ function TicketPublicDetails({ ticket }: TicketPublicDetailsProps) {
     } finally {
       setIsGeneratingPdf(false);
     }
+  }
+
+  function handleWhatsApp() {
+    const phone = formatPhoneForWhatsApp(agencyWhatsapp) || formatPhoneForWhatsApp(defaultAgencyWhatsapp);
+    const message = [
+      `Ola, gostaria de falar sobre o bilhete ${ticket.locator}.`,
+      `Passageiro: ${ticket.passenger} ${ticket.surname}.`,
+      `Rota: ${ticket.segments[0]?.origin.iata ?? '-'} > ${
+        ticket.segments[ticket.segments.length - 1]?.destination.iata ?? '-'
+      }.`
+    ].join('\n');
+
+    window.open(
+      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
   }
 
   return (
@@ -160,7 +202,7 @@ function TicketPublicDetails({ ticket }: TicketPublicDetailsProps) {
                 <Download size={16} aria-hidden="true" />
                 {isGeneratingPdf ? 'Gerando PDF...' : 'Baixar PDF'}
               </Button>
-              <Button className="w-full" variant="secondary">
+              <Button className="w-full" variant="secondary" onClick={handleWhatsApp}>
                 <MessageCircle size={16} aria-hidden="true" />
                 WhatsApp
               </Button>
@@ -354,6 +396,10 @@ function resolveSegmentLabel(index: number, total: number) {
   }
 
   return `Conexao ${index}`;
+}
+
+function formatPhoneForWhatsApp(phone: string) {
+  return phone.replace(/\D/g, '');
 }
 
 type InfoRowProps = {
