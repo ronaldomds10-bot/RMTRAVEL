@@ -14,9 +14,9 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { tickets as mockTickets } from '../data/tickets';
 import { formatCurrency } from '../lib/formatters';
-import * as customerRepository from '../services/customers/customerRepository';
-import * as localTicketRepository from '../services/tickets/ticketRepository';
+import { customerRepository } from '../services/customers/customerRepositoryAdapter';
 import * as saleRepository from '../services/sales/saleRepository';
+import { ticketRepository } from '../services/tickets/ticketRepositoryAdapter';
 import type { CustomerRecord } from '../types/customer';
 import type { Ticket } from '../types/ticket';
 import type { Sale, SaleInput, SalePaymentMethod, SaleStatus } from '../types/sale';
@@ -65,7 +65,7 @@ export function SalesPage() {
     const [saleRecords, customerRecords, savedTickets] = await Promise.all([
       saleRepository.listSales(),
       customerRepository.listCustomers(),
-      localTicketRepository.listTickets()
+      ticketRepository.listTickets()
     ]);
 
     setSales(saleRecords);
