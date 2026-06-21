@@ -469,7 +469,7 @@ function formatDate(value: string | null) {
 }
 
 function formatStatus(value: string) {
-  return value.replaceAll('_', ' ');
+  return value.replace(/_/g, ' ');
 }
 
 const fieldClass =
