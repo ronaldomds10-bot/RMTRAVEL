@@ -16,6 +16,7 @@ import {
   SupportSettingsPage
 } from './SettingsPages';
 import { SitePage } from './SitePage';
+import { SuppliersPage } from './SuppliersPage';
 import { TicketImportPage } from './TicketImportPage';
 import { TicketsPage } from './TicketsPage';
 
@@ -65,6 +66,10 @@ export function PlatformPage() {
 
   if (page.path === '/platform/miles') {
     return <MilesPage />;
+  }
+
+  if (page.path === '/platform/fornecedores') {
+    return <SuppliersPage />;
   }
 
   if (page.path === '/platform/settings') {
