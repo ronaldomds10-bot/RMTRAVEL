@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import importTicketHandler from './api/tickets/import';
 import { handleTicketSearch } from './src/services/tickets/searchTickets';
 
 async function readJsonBody(request: NodeJS.ReadableStream) {
@@ -37,6 +38,10 @@ export default defineConfig({
             response.statusCode = 400;
             response.end(JSON.stringify({ data: null, error: 'Payload JSON invalido.' }));
           }
+        });
+
+        server.middlewares.use('/api/tickets/import', async (request, response) => {
+          await importTicketHandler(request, response);
         });
       }
     }
