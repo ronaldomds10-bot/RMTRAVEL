@@ -11,6 +11,7 @@ import { MilesPage } from './MilesPage';
 import { MilesPurchasesPage } from './MilesPurchasesPage';
 import { MilesTransfersPage } from './MilesTransfersPage';
 import { MonitoringPage } from './MonitoringPage';
+import { NotificationsPage } from './NotificationsPage';
 import { SalesPage } from './SalesPage';
 import {
   CompanySettingsPage,
@@ -70,6 +71,10 @@ export function PlatformPage() {
 
   if (page.path === '/platform/monitoring') {
     return <MonitoringPage />;
+  }
+
+  if (page.path === '/platform/notifications') {
+    return <NotificationsPage />;
   }
 
   if (page.path === '/platform/miles') {
