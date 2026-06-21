@@ -9,18 +9,18 @@ import {
   Save,
   Search,
   Trash2,
+  UploadCloud,
   X,
   XCircle
 } from 'lucide-react';
 import { FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
-import { tickets } from '../data/tickets';
 import { formatCurrency } from '../lib/formatters';
-import { ticketProvider } from '../services/tickets';
 import { generateTicketPdf } from '../services/tickets/ticketPdf';
 import {
   getTicketRepositoryDiagnostics,
@@ -40,6 +40,7 @@ const statusTone: Record<TicketStatus, 'green' | 'blue' | 'amber' | 'slate'> = {
 type SearchStatus = 'idle' | 'loading' | 'success' | 'not-found' | 'validation-error' | 'endpoint-error';
 
 export function TicketsPage() {
+  const navigate = useNavigate();
   const [input, setInput] = useState<TicketSearchInput>({ surname: '', locator: '' });
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('idle');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -56,10 +57,31 @@ export function TicketsPage() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSavingTicket, setIsSavingTicket] = useState(false);
 
-  const exampleTicket = tickets[0];
   const isLoading = searchStatus === 'loading';
   const hasTypedSearch = input.surname.trim().length > 0 || input.locator.trim().length > 0;
-  const canSearch = input.surname.trim().length > 0 && input.locator.trim().length > 0 && !isLoading;
+  const canSearch = hasTypedSearch && !isLoading;
+  const filteredSavedTickets = useMemo(() => {
+    const locator = input.locator.trim().toLowerCase();
+    const surname = input.surname.trim().toLowerCase();
+
+    if (!locator && !surname) {
+      return savedTickets;
+    }
+
+    return savedTickets.filter((ticket) => {
+      const matchesLocator =
+        !locator ||
+        ticket.locator.toLowerCase().includes(locator) ||
+        ticket.id.toLowerCase().includes(locator) ||
+        ticket.airline.toLowerCase().includes(locator);
+      const matchesSurname =
+        !surname ||
+        ticket.surname.toLowerCase().includes(surname) ||
+        ticket.passenger.toLowerCase().includes(surname);
+
+      return matchesLocator && matchesSurname;
+    });
+  }, [input.locator, input.surname, savedTickets]);
   const selectedSavedTicket = useMemo(() => {
     if (!selectedTicket) {
       return null;
@@ -95,53 +117,27 @@ export function TicketsPage() {
       return;
     }
 
-    try {
-      setSearchStatus('loading');
-      setSearchMessage(null);
-      setSaveMessage(null);
-      setPdfError(null);
-      setSelectedTicket(null);
+    setSelectedTicket(null);
+    setSaveMessage(null);
+    setPdfError(null);
 
-      const result = await ticketProvider.searchByLocator(input);
-
-      if (!result) {
-        setSearchStatus('not-found');
-        setSearchMessage('Nenhuma reserva foi encontrada para esse localizador e sobrenome.');
-        return;
-      }
-
-      setSelectedTicket(result);
-      setSearchStatus('success');
-      setSearchMessage(null);
-    } catch (error) {
-      setSelectedTicket(null);
-      setSearchStatus('endpoint-error');
-      setSearchMessage(
-        error instanceof Error
-          ? error.message
-          : 'Nao foi possivel consultar a reserva agora. Tente novamente.'
-      );
-    }
-  }
-
-  function updateInput(field: keyof TicketSearchInput, value: string) {
-    const shouldClearPreviousResult = field === 'locator' && value !== input.locator;
-
-    setInput((current) => ({ ...current, [field]: value }));
-
-    if (shouldClearPreviousResult) {
-      setSelectedTicket(null);
-      setSearchStatus('idle');
-      setSearchMessage(null);
-      setSaveMessage(null);
-      setPdfError(null);
+    if (filteredSavedTickets.length === 0) {
+      setSearchStatus('not-found');
+      setSearchMessage('Nenhum bilhete cadastrado corresponde aos filtros informados.');
       return;
     }
 
-    if (searchStatus === 'validation-error') {
-      setSearchStatus(selectedTicket ? 'success' : 'idle');
-      setSearchMessage(null);
-    }
+    setSearchStatus('success');
+    setSearchMessage(null);
+  }
+
+  function updateInput(field: keyof TicketSearchInput, value: string) {
+    setInput((current) => ({ ...current, [field]: value }));
+    setSelectedTicket(null);
+    setSearchStatus('idle');
+    setSearchMessage(null);
+    setSaveMessage(null);
+    setPdfError(null);
   }
 
   function clearSearch() {
@@ -251,19 +247,25 @@ export function TicketsPage() {
 
   return (
     <section className="space-y-6">
-      <PageHeader
-        title="Bilhetes"
-        description="Consulta simulada por localizador e sobrenome para preparar a futura busca automatica de reservas."
-        badge="Busca mockada"
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <PageHeader
+          title="Bilhetes"
+          description="Consulte, edite e acompanhe os bilhetes ja cadastrados."
+          badge="Repository"
+        />
+        <Button className="w-full sm:w-auto" onClick={() => navigate('/platform/tickets/import')}>
+          <UploadCloud size={16} aria-hidden="true" />
+          Importar emissao
+        </Button>
+      </div>
 
       <RepositoryDiagnosticsBanner diagnostics={repositoryDiagnostics} />
 
       <Card>
         <CardHeader>
-          <h2 className="text-base font-semibold text-ink-900">Buscar reserva</h2>
+          <h2 className="text-base font-semibold text-ink-900">Buscar bilhetes</h2>
           <p className="text-sm text-ink-500">
-            Use localizador e sobrenome para simular o retorno dos detalhes do bilhete.
+            Use localizador, companhia, nome ou sobrenome para filtrar bilhetes ja cadastrados.
           </p>
         </CardHeader>
         <CardContent>
@@ -275,7 +277,7 @@ export function TicketsPage() {
                 disabled={isLoading}
                 value={input.locator}
                 onChange={(event) => updateInput('locator', event.target.value.toUpperCase())}
-                placeholder={exampleTicket.locator}
+                placeholder="RM7LIS"
               />
             </label>
             <label>
@@ -285,7 +287,7 @@ export function TicketsPage() {
                 disabled={isLoading}
                 value={input.surname}
                 onChange={(event) => updateInput('surname', event.target.value)}
-                placeholder={exampleTicket.surname}
+                placeholder="Costa"
               />
             </label>
             <div className="flex items-end">
@@ -295,7 +297,7 @@ export function TicketsPage() {
                 ) : (
                   <Search size={16} aria-hidden="true" />
                 )}
-                {isLoading ? 'Buscando...' : 'Buscar reserva'}
+                {isLoading ? 'Buscando...' : 'Buscar bilhetes'}
               </Button>
             </div>
             <div className="flex items-end">
@@ -354,7 +356,7 @@ export function TicketsPage() {
           <CardContent>
             <EmptyState
               title="Reserva nao encontrada"
-              description="Conferimos localizador e sobrenome, mas nenhum bilhete mockado corresponde aos dados informados. Revise os campos ou teste RM7LIS + Costa."
+              description="Nenhum bilhete cadastrado corresponde aos filtros informados. Revise a busca ou importe uma emissao."
               actionLabel="Sem resultado"
               icon={Search}
             />
@@ -379,10 +381,10 @@ export function TicketsPage() {
         <Card>
           <CardContent>
             <EmptyState
-              title="Aguardando consulta"
-              description="Preencha os campos para visualizar os dados completos de uma reserva mockada."
-              actionLabel={`${exampleTicket.locator} / ${exampleTicket.surname}`}
-              icon={Plane}
+              title="Busque nos bilhetes cadastrados"
+              description="Preencha os campos para filtrar a lista de bilhetes salvos no repositorio."
+              actionLabel="Lista de bilhetes"
+              icon={Search}
             />
           </CardContent>
         </Card>
@@ -390,7 +392,7 @@ export function TicketsPage() {
 
       <SavedTicketsList
         actionMessage={ticketActionMessage}
-        tickets={savedTickets}
+        tickets={filteredSavedTickets}
         repositoryMode={repositoryDiagnostics.activeRepository}
         onDeleteTicket={handleDeleteTicket}
         onEditTicket={setEditingTicket}
@@ -458,20 +460,16 @@ function validateSearchInput(input: TicketSearchInput) {
   const locator = input.locator.trim();
   const surname = input.surname.trim();
 
-  if (!locator) {
-    return 'Informe o localizador para buscar a reserva.';
+  if (!locator && !surname) {
+    return 'Informe localizador, companhia, nome ou sobrenome para buscar bilhetes.';
   }
 
-  if (!surname) {
-    return 'Informe o sobrenome do passageiro para buscar a reserva.';
+  if (locator && locator.length < 2) {
+    return 'O campo localizador deve ter pelo menos 2 caracteres.';
   }
 
-  if (locator.length < 4 || locator.length > 10) {
-    return 'O localizador deve ter entre 4 e 10 caracteres.';
-  }
-
-  if (surname.length < 2 || surname.length > 80) {
-    return 'O sobrenome deve ter entre 2 e 80 caracteres.';
+  if (surname && surname.length < 2) {
+    return 'O campo nome ou sobrenome deve ter pelo menos 2 caracteres.';
   }
 
   return null;
@@ -646,8 +644,8 @@ function SavedTicketsList({
         {tickets.length === 0 ? (
           <EmptyState
             title="Nenhum bilhete salvo"
-            description="Busque uma reserva mockada e use Salvar bilhete para registrar localmente."
-            actionLabel="Persistencia local"
+            description="Importe uma emissao para registrar o primeiro bilhete."
+            actionLabel="Sem bilhetes"
             icon={Save}
           />
         ) : (

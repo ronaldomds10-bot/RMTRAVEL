@@ -15,7 +15,6 @@ import {
   Settings,
   ShieldCheck,
   Ticket,
-  UploadCloud,
   UsersRound,
   WalletCards
 } from 'lucide-react';
@@ -38,7 +37,6 @@ export const navigationGroups: NavigationGroup[] = [
     items: [
       { title: 'Painel', path: '/platform', icon: Gauge },
       { title: 'Bilhetes', path: '/platform/tickets', icon: Ticket },
-      { title: 'Importar emissão', path: '/platform/tickets/import', icon: UploadCloud },
       { title: 'Clientes', path: '/platform/customers', icon: UsersRound },
       { title: 'Site', path: '/platform/site', icon: Globe2 },
       { title: 'Vendas', path: '/platform/emissions/sales', icon: Plane }
