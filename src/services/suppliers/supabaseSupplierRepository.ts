@@ -116,10 +116,12 @@ export const supplierRepository = {
 
   async updateSupplier(id: string, supplier: SupplierInput): Promise<Supplier | null> {
     const client = requireSupabase();
+    const userId = await getCurrentUserId();
     const { data, error } = await client
       .from('suppliers')
       .update(toSupplierTableUpdate(supplier))
       .eq('id', id)
+      .eq('user_id', userId)
       .select('*')
       .maybeSingle();
 
@@ -132,7 +134,8 @@ export const supplierRepository = {
 
   async deleteSupplier(id: string): Promise<boolean> {
     const client = requireSupabase();
-    const { error } = await client.from('suppliers').delete().eq('id', id);
+    const userId = await getCurrentUserId();
+    const { error } = await client.from('suppliers').delete().eq('id', id).eq('user_id', userId);
 
     if (error) {
       throw new Error(`Nao foi possivel remover fornecedor: ${error.message}`);

@@ -130,10 +130,12 @@ export const milesTransferRepository = {
 
   async updateTransfer(id: string, input: MilesTransferInput): Promise<MilesTransfer | null> {
     const client = requireSupabase();
+    const userId = await getCurrentUserId();
     const { data, error } = await client
       .from('miles_transfers')
       .update(toMilesTransferTableUpdate(input))
       .eq('id', id)
+      .eq('user_id', userId)
       .select(transferSelect)
       .maybeSingle();
 
@@ -146,7 +148,8 @@ export const milesTransferRepository = {
 
   async deleteTransfer(id: string): Promise<boolean> {
     const client = requireSupabase();
-    const { error } = await client.from('miles_transfers').delete().eq('id', id);
+    const userId = await getCurrentUserId();
+    const { error } = await client.from('miles_transfers').delete().eq('id', id).eq('user_id', userId);
 
     if (error) {
       throw new Error(`Nao foi possivel remover transferencia de milhas: ${error.message}`);

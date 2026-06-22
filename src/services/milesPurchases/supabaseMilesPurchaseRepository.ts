@@ -123,10 +123,12 @@ export const milesPurchaseRepository = {
 
   async updatePurchase(id: string, input: MilesPurchaseInput): Promise<MilesPurchase | null> {
     const client = requireSupabase();
+    const userId = await getCurrentUserId();
     const { data, error } = await client
       .from('miles_purchases')
       .update(toMilesPurchaseTableUpdate(input))
       .eq('id', id)
+      .eq('user_id', userId)
       .select(purchaseSelect)
       .maybeSingle();
 
@@ -139,7 +141,8 @@ export const milesPurchaseRepository = {
 
   async deletePurchase(id: string): Promise<boolean> {
     const client = requireSupabase();
-    const { error } = await client.from('miles_purchases').delete().eq('id', id);
+    const userId = await getCurrentUserId();
+    const { error } = await client.from('miles_purchases').delete().eq('id', id).eq('user_id', userId);
 
     if (error) {
       throw new Error(`Nao foi possivel remover compra de milhas: ${error.message}`);

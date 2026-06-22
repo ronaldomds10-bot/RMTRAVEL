@@ -200,6 +200,7 @@ export function createSupabaseSettingsRepository(
       .from('user_profiles')
       .update(toUserProfileUpdate(input))
       .eq('id', id)
+      .eq('user_id', user.id)
       .select('*')
       .single();
 
@@ -288,6 +289,7 @@ export function createSupabaseSettingsRepository(
           .from('site_settings')
           .update(toSiteSettingsUpdate(input, current))
           .eq('id', existingId ?? current?.id ?? '')
+          .eq('user_id', user.id)
           .select('*')
           .single();
 

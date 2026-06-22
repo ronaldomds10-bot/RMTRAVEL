@@ -179,10 +179,12 @@ export function createSupabaseMilesProgramRepository(
     },
 
     async updateProgram(id, input) {
+      const userId = await getCurrentUserId(client);
       const response = await client
         .from('miles_programs')
         .update(toMilesProgramsTableUpdate(input))
         .eq('id', id)
+        .eq('user_id', userId)
         .select('*')
         .maybeSingle();
 
@@ -192,7 +194,8 @@ export function createSupabaseMilesProgramRepository(
     },
 
     async deleteProgram(id) {
-      const response = await client.from('miles_programs').delete().eq('id', id);
+      const userId = await getCurrentUserId(client);
+      const response = await client.from('miles_programs').delete().eq('id', id).eq('user_id', userId);
 
       assertNoError(response, 'Nao foi possivel excluir o programa de milhas');
 

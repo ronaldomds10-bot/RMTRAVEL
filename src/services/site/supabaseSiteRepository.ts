@@ -131,11 +131,16 @@ function toSiteConfigurationRecord(row: SiteSettingsTableRow): SiteConfiguration
 }
 
 export function createSupabaseSiteRepository(client: SupabaseSiteClient): SupabaseSiteRepository {
-  async function updateSiteConfiguration(id: string, configuration: SiteConfiguration) {
+  async function updateSiteConfiguration(
+    id: string,
+    configuration: SiteConfiguration,
+    userId: string
+  ) {
     const response = await client
       .from('site_settings')
       .update(toSiteSettingsTableUpdate(configuration))
       .eq('id', id)
+      .eq('user_id', userId)
       .select('*')
       .single();
 
@@ -166,7 +171,7 @@ export function createSupabaseSiteRepository(client: SupabaseSiteClient): Supaba
       const userId = await getCurrentUserId(client);
 
       if (existingId) {
-        return updateSiteConfiguration(existingId, configuration);
+        return updateSiteConfiguration(existingId, configuration, userId);
       }
 
       const existingResponse = await client
@@ -178,7 +183,7 @@ export function createSupabaseSiteRepository(client: SupabaseSiteClient): Supaba
       assertNoError(existingResponse, 'Nao foi possivel verificar configuracoes existentes do site');
 
       if (existingResponse.data) {
-        return updateSiteConfiguration(existingResponse.data.id, configuration);
+        return updateSiteConfiguration(existingResponse.data.id, configuration, userId);
       }
 
       const response = await client

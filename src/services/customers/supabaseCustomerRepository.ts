@@ -270,10 +270,12 @@ export function createSupabaseCustomerRepository(
     },
 
     async updateCustomer(id, customer) {
+      const userId = await getCurrentUserId(client);
       const response = await client
         .from('customers')
         .update(toCustomerTableUpdate(customer))
         .eq('id', id)
+        .eq('user_id', userId)
         .select('*')
         .maybeSingle();
 
@@ -283,7 +285,8 @@ export function createSupabaseCustomerRepository(
     },
 
     async deleteCustomer(id) {
-      const response = await client.from('customers').delete().eq('id', id);
+      const userId = await getCurrentUserId(client);
+      const response = await client.from('customers').delete().eq('id', id).eq('user_id', userId);
 
       assertNoError(response, 'Nao foi possivel remover o cliente no Supabase');
 

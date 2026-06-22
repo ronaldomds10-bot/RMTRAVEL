@@ -294,10 +294,12 @@ export function createSupabaseTicketRepository(
     },
 
     async updateTicket(id, ticket) {
+      const userId = await getCurrentUserId(client);
       const response = await client
         .from('tickets')
         .update(toTicketsTableUpdate(ticket))
         .eq('id', id)
+        .eq('user_id', userId)
         .select('*')
         .maybeSingle();
 
@@ -307,7 +309,8 @@ export function createSupabaseTicketRepository(
     },
 
     async deleteTicket(id) {
-      const response = await client.from('tickets').delete().eq('id', id);
+      const userId = await getCurrentUserId(client);
+      const response = await client.from('tickets').delete().eq('id', id).eq('user_id', userId);
 
       assertNoError(response, 'Nao foi possivel remover o bilhete no Supabase');
 
