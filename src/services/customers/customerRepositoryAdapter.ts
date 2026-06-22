@@ -22,11 +22,13 @@ export type CustomerRepositoryDiagnostics = {
 const hasConfiguredSupabase = Boolean(
   import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
 );
+const canUseLocalFallback = import.meta.env.DEV;
+const unavailableMessage = 'Nao foi possivel acessar clientes neste momento.';
 let supabaseCustomerRepositoryPromise: Promise<SupabaseCustomerRepository | null> | null = null;
 let diagnostics: CustomerRepositoryDiagnostics = {
   configuredRepository: hasConfiguredSupabase ? 'supabase' : 'local',
-  activeRepository: hasConfiguredSupabase ? 'supabase' : 'local',
-  isFallbackActive: !hasConfiguredSupabase
+  activeRepository: hasConfiguredSupabase ? 'supabase' : canUseLocalFallback ? 'local' : 'supabase',
+  isFallbackActive: !hasConfiguredSupabase && canUseLocalFallback
 };
 
 async function getSupabaseCustomerRepository() {
@@ -59,9 +61,14 @@ async function withLocalFallback<T>(
   if (!supabaseCustomerRepository) {
     diagnostics = {
       configuredRepository: hasConfiguredSupabase ? 'supabase' : 'local',
-      activeRepository: 'local',
-      isFallbackActive: true
+      activeRepository: canUseLocalFallback ? 'local' : 'supabase',
+      isFallbackActive: canUseLocalFallback
     };
+
+    if (!canUseLocalFallback) {
+      throw new Error(unavailableMessage);
+    }
+
     return fallback(localCustomerRepository);
   }
 
@@ -76,15 +83,16 @@ async function withLocalFallback<T>(
   } catch (error) {
     diagnostics = {
       configuredRepository: 'supabase',
-      activeRepository: 'local',
-      isFallbackActive: true
+      activeRepository: canUseLocalFallback ? 'local' : 'supabase',
+      isFallbackActive: canUseLocalFallback
     };
 
-    if (import.meta.env.DEV) {
+    if (canUseLocalFallback) {
       console.error('[RMTRAVEL] Supabase customers repository failed. Using local fallback.', error);
+      return fallback(localCustomerRepository);
     }
 
-    return fallback(localCustomerRepository);
+    throw new Error(unavailableMessage);
   }
 }
 

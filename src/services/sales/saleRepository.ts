@@ -3,6 +3,8 @@ import type { Sale, SaleInput, SalePaymentMethod, SaleStatus } from '../../types
 
 const STORAGE_KEY = 'rmtravel:sales';
 let memoryRecords: Sale[] = seedSales();
+const canUseLocalFallback = import.meta.env.DEV;
+const unavailableMessage = 'Nao foi possivel acessar vendas neste momento.';
 
 type SalesTableRow = {
   id: string;
@@ -261,6 +263,10 @@ function toSale(row: SalesTableRow): Sale {
 
 function requireSupabase() {
   if (!hasSupabaseConfig || !supabase) {
+    if (!canUseLocalFallback) {
+      throw new Error(unavailableMessage);
+    }
+
     return null;
   }
 
@@ -277,11 +283,11 @@ async function getCurrentUserId() {
   const { data, error } = await client.auth.getUser();
 
   if (error) {
-    throw new Error(`Nao foi possivel identificar o usuario autenticado: ${error.message}`);
+    throw new Error(unavailableMessage);
   }
 
   if (!data.user) {
-    throw new Error('Usuario autenticado nao encontrado para persistir vendas.');
+    throw new Error(unavailableMessage);
   }
 
   return data.user.id;
@@ -331,6 +337,10 @@ export async function listSales() {
   const userId = await getCurrentUserId();
 
   if (!client || !userId) {
+    if (!canUseLocalFallback) {
+      throw new Error(unavailableMessage);
+    }
+
     return listLocalSales();
   }
 
@@ -343,7 +353,7 @@ export async function listSales() {
     .order('updated_at', { ascending: false });
 
   if (error) {
-    throw new Error(`Nao foi possivel listar vendas no Supabase: ${error.message}`);
+    throw new Error(unavailableMessage);
   }
 
   return ((data ?? []) as SalesTableRow[]).map(toSale);
@@ -354,6 +364,10 @@ export async function createSale(input: SaleInput) {
   const userId = await getCurrentUserId();
 
   if (!client || !userId) {
+    if (!canUseLocalFallback) {
+      throw new Error(unavailableMessage);
+    }
+
     return createLocalSale(input);
   }
 
@@ -366,11 +380,11 @@ export async function createSale(input: SaleInput) {
     .single();
 
   if (error) {
-    throw new Error(`Nao foi possivel criar venda no Supabase: ${error.message}`);
+    throw new Error(unavailableMessage);
   }
 
   if (!data) {
-    throw new Error('Supabase nao retornou a venda criada.');
+    throw new Error(unavailableMessage);
   }
 
   return toSale(data as SalesTableRow);
@@ -381,6 +395,10 @@ export async function updateSale(id: string, input: SaleInput) {
   const userId = await getCurrentUserId();
 
   if (!client || !userId) {
+    if (!canUseLocalFallback) {
+      throw new Error(unavailableMessage);
+    }
+
     return updateLocalSale(id, input);
   }
 
@@ -395,7 +413,7 @@ export async function updateSale(id: string, input: SaleInput) {
     .maybeSingle();
 
   if (error) {
-    throw new Error(`Nao foi possivel atualizar venda no Supabase: ${error.message}`);
+    throw new Error(unavailableMessage);
   }
 
   return data ? toSale(data as SalesTableRow) : null;
@@ -406,13 +424,17 @@ export async function deleteSale(id: string) {
   const userId = await getCurrentUserId();
 
   if (!client || !userId) {
+    if (!canUseLocalFallback) {
+      throw new Error(unavailableMessage);
+    }
+
     return deleteLocalSale(id);
   }
 
   const { error } = await client.from('sales').delete().eq('id', id).eq('user_id', userId);
 
   if (error) {
-    throw new Error(`Nao foi possivel remover venda no Supabase: ${error.message}`);
+    throw new Error(unavailableMessage);
   }
 
   return true;

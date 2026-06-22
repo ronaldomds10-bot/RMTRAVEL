@@ -21,11 +21,13 @@ export type TicketRepositoryDiagnostics = {
 const hasConfiguredSupabase = Boolean(
   import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
 );
+const canUseLocalFallback = import.meta.env.DEV;
+const unavailableMessage = 'Nao foi possivel acessar bilhetes neste momento.';
 let supabaseTicketRepositoryPromise: Promise<SupabaseTicketRepository | null> | null = null;
 let diagnostics: TicketRepositoryDiagnostics = {
   configuredRepository: hasConfiguredSupabase ? 'supabase' : 'local',
-  activeRepository: hasConfiguredSupabase ? 'supabase' : 'local',
-  isFallbackActive: !hasConfiguredSupabase
+  activeRepository: hasConfiguredSupabase ? 'supabase' : canUseLocalFallback ? 'local' : 'supabase',
+  isFallbackActive: !hasConfiguredSupabase && canUseLocalFallback
 };
 
 async function getSupabaseTicketRepository() {
@@ -58,9 +60,14 @@ async function withLocalFallback<T>(
   if (!supabaseTicketRepository) {
     diagnostics = {
       configuredRepository: hasConfiguredSupabase ? 'supabase' : 'local',
-      activeRepository: 'local',
-      isFallbackActive: true
+      activeRepository: canUseLocalFallback ? 'local' : 'supabase',
+      isFallbackActive: canUseLocalFallback
     };
+
+    if (!canUseLocalFallback) {
+      throw new Error(unavailableMessage);
+    }
+
     return fallback(localTicketRepository);
   }
 
@@ -75,15 +82,16 @@ async function withLocalFallback<T>(
   } catch (error) {
     diagnostics = {
       configuredRepository: 'supabase',
-      activeRepository: 'local',
-      isFallbackActive: true
+      activeRepository: canUseLocalFallback ? 'local' : 'supabase',
+      isFallbackActive: canUseLocalFallback
     };
 
-    if (import.meta.env.DEV) {
+    if (canUseLocalFallback) {
       console.error('[RMTRAVEL] Supabase tickets repository failed. Using local fallback.', error);
+      return fallback(localTicketRepository);
     }
 
-    return fallback(localTicketRepository);
+    throw new Error(unavailableMessage);
   }
 }
 
