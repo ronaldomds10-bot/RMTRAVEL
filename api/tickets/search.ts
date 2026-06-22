@@ -1,30 +1,52 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { getProviderFromPayload, validateProviderEnv } from '../_lib/providerEnv';
+import { readJsonBody } from '../_lib/readJsonBody';
+import { validateProviderEnv } from '../_lib/providerEnv';
+import { hasValidSupabaseSession } from '../_lib/supabaseServerAuth';
 import { handleTicketSearch } from '../../src/services/tickets/searchTickets';
+import { availableTicketProviders } from '../../src/services/tickets/providers/providerRouter';
+import type { TicketProviderSource, TicketSearchInput } from '../../src/types/ticket';
 
 type TicketSearchRequest = IncomingMessage & {
   body?: unknown;
 };
 
-async function readJsonBody(request: TicketSearchRequest) {
-  if (request.body !== undefined) {
-    return request.body;
-  }
-
-  const chunks: Buffer[] = [];
-
-  for await (const chunk of request) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-
-  const rawBody = Buffer.concat(chunks).toString('utf8');
-  return rawBody ? JSON.parse(rawBody) : {};
-}
-
 function sendJson(response: ServerResponse, status: number, body: unknown) {
   response.statusCode = status;
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
   response.end(JSON.stringify(body));
+}
+
+function getStringField(payload: unknown, field: keyof TicketSearchInput) {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const value = (payload as Record<string, unknown>)[field];
+  return typeof value === 'string' ? value.trim() : null;
+}
+
+function validatePayload(payload: unknown): TicketSearchInput | string {
+  const locator = getStringField(payload, 'locator');
+  const surname = getStringField(payload, 'surname');
+  const provider = getStringField(payload, 'provider');
+
+  if (!locator || !/^[a-z0-9]{3,12}$/i.test(locator)) {
+    return 'Dados de busca invalidos.';
+  }
+
+  if (!surname || surname.length < 2 || surname.length > 80) {
+    return 'Dados de busca invalidos.';
+  }
+
+  if (provider && !availableTicketProviders.includes(provider as TicketProviderSource)) {
+    return 'Dados de busca invalidos.';
+  }
+
+  return {
+    locator: locator.toUpperCase(),
+    surname,
+    provider: provider ? (provider as TicketProviderSource) : 'mock'
+  };
 }
 
 export default async function handler(request: TicketSearchRequest, response: ServerResponse) {
@@ -37,31 +59,59 @@ export default async function handler(request: TicketSearchRequest, response: Se
   }
 
   try {
-    const payload = await readJsonBody(request);
-    const envStatus = validateProviderEnv(getProviderFromPayload(payload));
+    const isAuthenticated = await hasValidSupabaseSession(request);
 
-    if (!envStatus.ok) {
-      console.info('[RMTRAVEL] Ticket provider env missing', {
-        provider: envStatus.provider,
-        missingEnvNames: envStatus.missingEnvNames
-      });
-
-      sendJson(response, 501, {
+    if (!isAuthenticated) {
+      sendJson(response, 401, {
         data: null,
-        error: envStatus.message,
-        code: envStatus.code,
-        provider: envStatus.provider
+        error: 'Nao autorizado.',
+        code: 'unauthorized'
       });
       return;
     }
 
-    const result = await handleTicketSearch(payload);
+    const payload = await readJsonBody(request);
+    const input = validatePayload(payload);
+
+    if (typeof input === 'string') {
+      sendJson(response, 400, {
+        data: null,
+        error: input,
+        code: 'invalid_payload'
+      });
+      return;
+    }
+
+    const envStatus = validateProviderEnv(input.provider);
+
+    if (!envStatus.ok) {
+      sendJson(response, 501, {
+        data: null,
+        error: 'Servico indisponivel.',
+        code: envStatus.code
+      });
+      return;
+    }
+
+    const result = await handleTicketSearch(input);
+
+    if (result.status >= 500) {
+      const code = result.body.error && 'code' in result.body ? result.body.code : 'provider_error';
+
+      sendJson(response, result.status, {
+        data: null,
+        error: 'Servico indisponivel.',
+        code
+      });
+      return;
+    }
+
     sendJson(response, result.status, result.body);
-  } catch (error) {
-    console.error('[RMTRAVEL] Ticket search API error', error);
+  } catch {
     sendJson(response, 400, {
       data: null,
-      error: 'Payload JSON invalido.'
+      error: 'Payload JSON invalido.',
+      code: 'invalid_payload'
     });
   }
 }

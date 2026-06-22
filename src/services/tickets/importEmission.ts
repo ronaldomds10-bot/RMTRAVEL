@@ -1,4 +1,5 @@
 import type { Ticket, TicketProviderSource, TicketStatus } from '../../types/ticket';
+import { getAuthenticatedJsonHeaders } from '../authHeaders';
 
 export type ImportAirline = 'azul' | 'gol' | 'latam' | 'iberia' | 'american';
 
@@ -66,9 +67,7 @@ function normalizeStatus(status: string): TicketStatus {
 export async function importEmission(input: ImportEmissionInput) {
   const response = await fetch('/api/tickets/import', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await getAuthenticatedJsonHeaders(),
     body: JSON.stringify(input)
   });
   const result = (await response.json()) as ImportEmissionApiResponse;

@@ -1,14 +1,13 @@
 import type { TicketProvider } from './TicketProvider';
 import type { TicketSearchApiResponse } from './searchTickets';
+import { getAuthenticatedJsonHeaders } from '../authHeaders';
 
 export const apiTicketProvider: TicketProvider = {
   provider: 'mock',
   async searchByLocator(input) {
     const response = await fetch('/api/tickets/search', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: await getAuthenticatedJsonHeaders(),
       body: JSON.stringify(input)
     });
 

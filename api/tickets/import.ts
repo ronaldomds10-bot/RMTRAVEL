@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { readJsonBody } from '../_lib/readJsonBody';
 import {
   availableEmissionAirlines,
   providerRouter
@@ -8,25 +9,11 @@ import {
   type ImportAirline,
   type ImportEmissionInput
 } from '../_lib/emissionProviders/types';
+import { hasValidSupabaseSession } from '../_lib/supabaseServerAuth';
 
 type ImportEmissionRequest = IncomingMessage & {
   body?: unknown;
 };
-
-async function readJsonBody(request: ImportEmissionRequest) {
-  if (request.body !== undefined) {
-    return request.body;
-  }
-
-  const chunks: Buffer[] = [];
-
-  for await (const chunk of request) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-
-  const rawBody = Buffer.concat(chunks).toString('utf8');
-  return rawBody ? JSON.parse(rawBody) : {};
-}
 
 function sendJson(response: ServerResponse, status: number, body: unknown) {
   response.statusCode = status;
@@ -49,23 +36,15 @@ function validateImportInput(payload: unknown): ImportEmissionInput | string {
   const passengerLastName = getStringField(payload, 'passengerLastName');
 
   if (!airline || !availableEmissionAirlines.includes(airline as ImportAirline)) {
-    return 'Selecione uma companhia aérea para importar a emissão.';
+    return 'Dados de importacao invalidos.';
   }
 
-  if (!recordLocator) {
-    return 'Informe o código da reserva.';
+  if (!recordLocator || !/^[a-z0-9]{3,12}$/i.test(recordLocator)) {
+    return 'Dados de importacao invalidos.';
   }
 
-  if (!passengerLastName) {
-    return 'Informe o sobrenome do passageiro.';
-  }
-
-  if (recordLocator.length < 4 || recordLocator.length > 10) {
-    return 'O código da reserva deve ter entre 4 e 10 caracteres.';
-  }
-
-  if (passengerLastName.length < 2 || passengerLastName.length > 80) {
-    return 'O sobrenome deve ter entre 2 e 80 caracteres.';
+  if (!passengerLastName || passengerLastName.length < 2 || passengerLastName.length > 80) {
+    return 'Dados de importacao invalidos.';
   }
 
   return {
@@ -79,19 +58,31 @@ export default async function handler(request: ImportEmissionRequest, response: 
   if (request.method !== 'POST') {
     sendJson(response, 405, {
       data: null,
-      error: 'Método não permitido.'
+      error: 'Metodo nao permitido.'
     });
     return;
   }
 
   try {
+    const isAuthenticated = await hasValidSupabaseSession(request);
+
+    if (!isAuthenticated) {
+      sendJson(response, 401, {
+        data: null,
+        error: 'Nao autorizado.',
+        code: 'unauthorized'
+      });
+      return;
+    }
+
     const payload = await readJsonBody(request);
     const input = validateImportInput(payload);
 
     if (typeof input === 'string') {
       sendJson(response, 400, {
         data: null,
-        error: input
+        error: input,
+        code: 'invalid_payload'
       });
       return;
     }
@@ -101,7 +92,7 @@ export default async function handler(request: ImportEmissionRequest, response: 
     if (!emission) {
       sendJson(response, 404, {
         data: null,
-        error: 'Emissão não encontrada para os dados informados.'
+        error: 'Emissao nao encontrada para os dados informados.'
       });
       return;
     }
@@ -114,17 +105,16 @@ export default async function handler(request: ImportEmissionRequest, response: 
     if (error instanceof EmissionProviderError) {
       sendJson(response, error.code === 'not_configured' ? 501 : 502, {
         data: null,
-        error: error.message,
-        code: error.code,
-        airline: error.airline
+        error: 'Servico indisponivel.',
+        code: error.code
       });
       return;
     }
 
-    console.error('[RMTRAVEL] Ticket import API error', error);
     sendJson(response, 400, {
       data: null,
-      error: 'Payload JSON inválido.'
+      error: 'Payload JSON invalido.',
+      code: 'invalid_payload'
     });
   }
 }
