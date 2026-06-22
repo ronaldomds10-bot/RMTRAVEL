@@ -10,6 +10,7 @@ import type {
   TicketSegment,
   TicketStatus
 } from '../../types/ticket';
+import { sanitizeTicketRawResponse } from './ticketRawData';
 
 type SupabaseRepositoryErrorDetails = {
   code?: string;
@@ -90,9 +91,8 @@ export type SupabaseTicketRepository = {
   deleteTicket(id: string): Promise<boolean>;
 };
 
-function createRepositoryError(action: string, error: SupabaseRepositoryErrorDetails) {
-  const detail = error.details ? ` (${error.details})` : '';
-  return new Error(`${action}: ${error.message}${detail}`);
+function createRepositoryError(action: string, _error: SupabaseRepositoryErrorDetails) {
+  return new Error(action);
 }
 
 function assertNoError<T>(
@@ -170,7 +170,7 @@ function toTicketsTableInsert(ticket: Ticket, userId: string): TicketsTableInser
       baggage: segment.baggage
     })),
     segments: ticket.segments,
-    raw_data: ticket.rawResponse ?? null,
+    raw_data: sanitizeTicketRawResponse(ticket.rawResponse),
     notes: ticket.observations
   };
 }
@@ -211,7 +211,7 @@ function toTicketRecord(row: TicketsTableRow): TicketRecord {
     currency: row.currency as 'BRL',
     observations: row.notes ?? '',
     segments,
-    rawResponse: row.raw_data ?? undefined,
+    rawResponse: sanitizeTicketRawResponse(row.raw_data) ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };

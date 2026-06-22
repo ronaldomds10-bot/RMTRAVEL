@@ -87,7 +87,7 @@ async function withLocalFallback<T>(
     };
 
     if (canUseLocalFallback) {
-      console.error('[RMTRAVEL] Supabase tickets repository failed. Using local fallback.', error);
+      console.error('[RMTRAVEL] Supabase tickets repository failed. Using local fallback.');
       return fallback(localTicketRepository);
     }
 

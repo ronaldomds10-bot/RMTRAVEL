@@ -1,5 +1,6 @@
 import type { Ticket, TicketProviderSource, TicketStatus } from '../../types/ticket';
 import { getAuthenticatedJsonHeaders } from '../authHeaders';
+import { createImportedEmissionRawData } from './ticketRawData';
 
 export type ImportAirline = 'azul' | 'gol' | 'latam' | 'iberia' | 'american';
 
@@ -120,9 +121,10 @@ export function importedEmissionToTicket(
         }
       }
     ],
-    rawResponse: {
-      source: 'importEmission',
-      emission
-    }
+    rawResponse: createImportedEmissionRawData({
+      airline: selectedAirline,
+      recordLocator: emission.recordLocator,
+      ticketNumber: emission.ticketNumber
+    })
   };
 }

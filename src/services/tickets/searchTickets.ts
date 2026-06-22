@@ -83,9 +83,8 @@ export async function handleTicketSearch(payload: unknown): Promise<TicketSearch
         status: error.code === 'not_configured' ? 501 : 502,
         body: {
           data: null,
-          error: error.message,
-          code: error.code,
-          provider: error.provider
+          error: 'Servico indisponivel.',
+          code: error.code
         }
       };
     }
@@ -103,10 +102,12 @@ export async function handleTicketSearch(payload: unknown): Promise<TicketSearch
     };
   }
 
+  const { rawResponse: _rawResponse, ...safeTicket } = ticket;
+
   return {
     status: 200,
     body: {
-      data: ticket,
+      data: safeTicket,
       error: null
     }
   };

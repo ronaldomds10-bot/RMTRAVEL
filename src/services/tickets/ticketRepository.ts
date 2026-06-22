@@ -1,6 +1,7 @@
 import type { Ticket } from '../../types/ticket';
 import type { TicketRecord } from '../../types/database';
 import { createPublicToken } from './publicToken';
+import { sanitizeTicketRawResponse } from './ticketRawData';
 
 const STORAGE_KEY = 'rmtravel:tickets';
 let memoryRecords: TicketRecord[] = [];
@@ -20,14 +21,19 @@ function cloneRecords(records: TicketRecord[]) {
 function ensurePublicTokens(records: TicketRecord[]) {
   let changed = false;
   const nextRecords = records.map((record) => {
-    if (record.publicToken) {
+    const sanitizedRawResponse = sanitizeTicketRawResponse(record.rawResponse) ?? undefined;
+    const hasSanitizedRawResponse =
+      JSON.stringify(record.rawResponse ?? null) === JSON.stringify(sanitizedRawResponse ?? null);
+
+    if (record.publicToken && hasSanitizedRawResponse) {
       return record;
     }
 
     changed = true;
     return {
       ...record,
-      publicToken: createPublicToken()
+      publicToken: record.publicToken ?? createPublicToken(),
+      rawResponse: sanitizedRawResponse
     };
   });
 
@@ -80,6 +86,7 @@ function toTicketRecord(ticket: Ticket, existing?: TicketRecord): TicketRecord {
   return {
     ...structuredClone(ticket),
     publicToken: existing?.publicToken ?? ticket.publicToken ?? createPublicToken(),
+    rawResponse: sanitizeTicketRawResponse(ticket.rawResponse) ?? undefined,
     createdAt: existing?.createdAt ?? now,
     updatedAt: now
   };
