@@ -222,8 +222,8 @@ export function TicketImportPage() {
                 }`}
               />
             </div>
-            <Link to={`/ticket/${savedTicket.id}`}>
-              <Button className="w-full" variant="secondary">
+            <Link to={savedTicket.publicToken ? `/ticket/${savedTicket.publicToken}` : '#'}>
+              <Button className="w-full" disabled={!savedTicket.publicToken} variant="secondary">
                 <ExternalLink size={16} aria-hidden="true" />
                 Abrir público
               </Button>

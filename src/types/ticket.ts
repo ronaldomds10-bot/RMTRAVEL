@@ -37,6 +37,7 @@ export type TicketSegment = {
 
 export type Ticket = {
   id: string;
+  publicToken?: string;
   passenger: string;
   surname: string;
   locator: string;

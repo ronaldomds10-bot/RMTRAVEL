@@ -40,7 +40,7 @@ export const router = createBrowserRouter([
         ]
       },
       {
-        path: '/ticket/:id',
+        path: '/ticket/:token',
         element: <TicketPublicPage />
       },
       {

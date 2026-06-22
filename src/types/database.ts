@@ -7,6 +7,7 @@ export type TicketRecord = Ticket & {
 
 export type TicketsTableRow = {
   id: string;
+  public_token: string;
   user_id: string;
   passenger_name: string;
   passenger_surname: string;
@@ -28,8 +29,13 @@ export type TicketsTableRow = {
   updated_at: string;
 };
 
-export type TicketsTableInsert = Omit<TicketsTableRow, 'id' | 'created_at' | 'updated_at'>;
+export type TicketsTableInsert = Omit<
+  TicketsTableRow,
+  'id' | 'public_token' | 'created_at' | 'updated_at'
+> & {
+  public_token?: string;
+};
 
 export type TicketsTableUpdate = Partial<
-  Omit<TicketsTableRow, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+  Omit<TicketsTableRow, 'id' | 'public_token' | 'user_id' | 'created_at' | 'updated_at'>
 >;

@@ -157,6 +157,7 @@ export function TicketsPage() {
     try {
       setIsSavingTicket(true);
       const record = await ticketRepository.createTicket(selectedTicket);
+      setSelectedTicket(record);
       await refreshSavedTickets();
       const alreadySaved = false;
 

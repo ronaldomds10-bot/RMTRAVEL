@@ -19,13 +19,17 @@ function requireTicket(ticket: Ticket | null): asserts ticket is Ticket {
 }
 
 function resolveTicketUrl(ticket: Ticket, baseUrl?: string) {
+  if (!ticket.publicToken) {
+    throw new Error('Salve o bilhete antes de gerar o link publico.');
+  }
+
   const origin =
     baseUrl ??
     (typeof window !== 'undefined' && window.location.origin
       ? window.location.origin
       : 'http://localhost:5173');
 
-  return `${origin}/ticket/${ticket.id}`;
+  return `${origin}/ticket/${ticket.publicToken}`;
 }
 
 function addLabelValue(doc: jsPDF, label: string, value: string, x: number, y: number) {

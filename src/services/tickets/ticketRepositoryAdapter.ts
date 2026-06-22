@@ -6,6 +6,7 @@ import type { SupabaseTicketClient, SupabaseTicketRepository } from './supabaseT
 type TicketRepository = {
   listTickets(): Promise<TicketRecord[]>;
   getTicketById(id: string): Promise<TicketRecord | null>;
+  getTicketByPublicToken(publicToken: string): Promise<TicketRecord | null>;
   createTicket(ticket: Ticket): Promise<TicketRecord>;
   updateTicket(id: string, ticket: Ticket): Promise<TicketRecord | null>;
   deleteTicket(id: string): Promise<boolean>;
@@ -106,6 +107,13 @@ export const ticketRepository: TicketRepository = {
     return withLocalFallback(
       (repository) => repository.getTicketById(id),
       (repository) => repository.getTicketById(id)
+    );
+  },
+
+  getTicketByPublicToken(publicToken) {
+    return withLocalFallback(
+      (repository) => repository.getTicketByPublicToken(publicToken),
+      (repository) => repository.getTicketByPublicToken(publicToken)
     );
   },
 

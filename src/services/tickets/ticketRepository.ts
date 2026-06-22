@@ -1,5 +1,6 @@
 import type { Ticket } from '../../types/ticket';
 import type { TicketRecord } from '../../types/database';
+import { createPublicToken } from './publicToken';
 
 const STORAGE_KEY = 'rmtravel:tickets';
 let memoryRecords: TicketRecord[] = [];
@@ -16,9 +17,32 @@ function cloneRecords(records: TicketRecord[]) {
   return records.map((record) => structuredClone(record));
 }
 
+function ensurePublicTokens(records: TicketRecord[]) {
+  let changed = false;
+  const nextRecords = records.map((record) => {
+    if (record.publicToken) {
+      return record;
+    }
+
+    changed = true;
+    return {
+      ...record,
+      publicToken: createPublicToken()
+    };
+  });
+
+  return { records: nextRecords, changed };
+}
+
 function readRecords() {
   if (!canUseLocalStorage()) {
-    return cloneRecords(memoryRecords);
+    const result = ensurePublicTokens(memoryRecords);
+
+    if (result.changed) {
+      memoryRecords = cloneRecords(result.records);
+    }
+
+    return cloneRecords(result.records);
   }
 
   const rawRecords = window.localStorage.getItem(STORAGE_KEY);
@@ -28,7 +52,13 @@ function readRecords() {
   }
 
   try {
-    return JSON.parse(rawRecords) as TicketRecord[];
+    const result = ensurePublicTokens(JSON.parse(rawRecords) as TicketRecord[]);
+
+    if (result.changed) {
+      writeRecords(result.records);
+    }
+
+    return result.records;
   } catch {
     window.localStorage.removeItem(STORAGE_KEY);
     return [];
@@ -49,6 +79,7 @@ function toTicketRecord(ticket: Ticket, existing?: TicketRecord): TicketRecord {
 
   return {
     ...structuredClone(ticket),
+    publicToken: existing?.publicToken ?? ticket.publicToken ?? createPublicToken(),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now
   };
@@ -67,6 +98,10 @@ export async function listTickets() {
 
 export async function getTicketById(id: string) {
   return readRecords().find((record) => record.id === id) ?? null;
+}
+
+export async function getTicketByPublicToken(publicToken: string) {
+  return readRecords().find((record) => record.publicToken === publicToken) ?? null;
 }
 
 export async function createTicket(ticket: Ticket) {

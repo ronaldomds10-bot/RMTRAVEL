@@ -4,7 +4,6 @@ import { Link, useParams } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
-import { tickets } from '../data/tickets';
 import { formatCurrency } from '../lib/formatters';
 import { siteRepository } from '../services/site/siteRepositoryAdapter';
 import { generateTicketPdf } from '../services/tickets/ticketPdf';
@@ -21,19 +20,14 @@ const statusTone: Record<TicketStatus, 'green' | 'blue' | 'amber' | 'slate'> = {
 const defaultAgencyWhatsapp = '+55 11 99999-9999';
 
 export function TicketPublicPage() {
-  const { id } = useParams();
-  const normalizedId = (id ?? '').trim().toLowerCase();
-  const mockTicket =
-    tickets.find(
-      (item) =>
-        item.id.toLowerCase() === normalizedId || item.locator.toLowerCase() === normalizedId
-    ) ?? null;
+  const { token } = useParams();
+  const normalizedToken = (token ?? '').trim();
   const [savedTicket, setSavedTicket] = useState<Ticket | null>(null);
-  const [isLoadingSavedTicket, setIsLoadingSavedTicket] = useState(!mockTicket);
-  const ticket = mockTicket ?? savedTicket;
+  const [isLoadingSavedTicket, setIsLoadingSavedTicket] = useState(true);
+  const ticket = savedTicket;
 
   useEffect(() => {
-    if (!normalizedId || mockTicket) {
+    if (!normalizedToken) {
       setIsLoadingSavedTicket(false);
       setSavedTicket(null);
       return;
@@ -43,19 +37,13 @@ export function TicketPublicPage() {
     setIsLoadingSavedTicket(true);
 
     ticketRepository
-      .listTickets()
-      .then((records) => {
+      .getTicketByPublicToken(normalizedToken)
+      .then((record) => {
         if (!isMounted) {
           return;
         }
 
-        setSavedTicket(
-          records.find(
-            (record) =>
-              record.id.toLowerCase() === normalizedId ||
-              record.locator.toLowerCase() === normalizedId
-          ) ?? null
-        );
+        setSavedTicket(record);
       })
       .finally(() => {
         if (isMounted) {
@@ -66,7 +54,7 @@ export function TicketPublicPage() {
     return () => {
       isMounted = false;
     };
-  }, [mockTicket, normalizedId]);
+  }, [normalizedToken]);
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 text-ink-900 sm:px-6 lg:px-8">
@@ -91,7 +79,7 @@ export function TicketPublicPage() {
         ) : ticket ? (
           <TicketPublicDetails ticket={ticket} />
         ) : (
-          <TicketNotFound searchedId={id ?? ''} />
+          <TicketNotFound searchedId={token ?? ''} />
         )}
       </div>
     </main>

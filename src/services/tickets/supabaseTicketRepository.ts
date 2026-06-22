@@ -34,6 +34,10 @@ type SupabaseSelectQuery<T> = PromiseLike<SupabaseListResponse<T>> & {
   order(column: string, options: { ascending: boolean }): SupabaseSelectQuery<T>;
 };
 
+type SupabaseRpcQuery<T> = {
+  maybeSingle(): PromiseLike<SupabaseResponse<T>>;
+};
+
 type SupabaseMutationQuery<T> = {
   eq(column: string, value: string): SupabaseMutationQuery<T>;
   select(columns?: string): {
@@ -71,11 +75,16 @@ export type SupabaseTicketClient = {
     }>;
   };
   from(table: 'tickets'): SupabaseTicketsTable;
+  rpc(
+    fn: 'get_public_ticket_by_token',
+    args: { lookup_public_token: string }
+  ): SupabaseRpcQuery<Omit<TicketsTableRow, 'user_id' | 'raw_data'>>;
 };
 
 export type SupabaseTicketRepository = {
   listTickets(): Promise<TicketRecord[]>;
   getTicketById(id: string): Promise<TicketRecord | null>;
+  getTicketByPublicToken(publicToken: string): Promise<TicketRecord | null>;
   createTicket(ticket: Ticket): Promise<TicketRecord>;
   updateTicket(id: string, ticket: Ticket): Promise<TicketRecord | null>;
   deleteTicket(id: string): Promise<boolean>;
@@ -191,6 +200,7 @@ function toTicketRecord(row: TicketsTableRow): TicketRecord {
 
   return {
     id: row.id,
+    publicToken: row.public_token,
     passenger: row.passenger_name,
     surname: row.passenger_surname,
     locator: row.locator,
@@ -248,6 +258,16 @@ export function createSupabaseTicketRepository(
       assertNoError(response, 'Nao foi possivel buscar o bilhete no Supabase');
 
       return response.data ? toTicketRecord(response.data) : null;
+    },
+
+    async getTicketByPublicToken(publicToken) {
+      const response = await client
+        .rpc('get_public_ticket_by_token', { lookup_public_token: publicToken })
+        .maybeSingle();
+
+      assertNoError(response, 'Nao foi possivel buscar o bilhete publico no Supabase');
+
+      return response.data ? toTicketRecord({ ...response.data, user_id: '', raw_data: null }) : null;
     },
 
     async createTicket(ticket) {
