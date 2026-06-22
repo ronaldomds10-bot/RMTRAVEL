@@ -131,7 +131,7 @@ export function SitePage() {
       setDraft(saved);
       setSavedConfig(saved);
       setRecordId(saved.id);
-      setSuccessMessage('Configuracoes do site salvas no Supabase.');
+      setSuccessMessage('Configuracoes do site salvas.');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Nao foi possivel salvar o site.');
     } finally {
@@ -206,7 +206,7 @@ export function SitePage() {
                   {siteSections.find((section) => section.id === activeSection)?.title}
                 </h2>
                 <p className="mt-1 text-sm text-ink-500">
-                  Dados carregados e salvos no Supabase com escopo do usuario autenticado.
+                  Dados da pagina publica da agencia.
                 </p>
               </div>
               {hasUnsavedChanges ? (

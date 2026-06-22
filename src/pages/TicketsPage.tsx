@@ -23,9 +23,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { formatCurrency } from '../lib/formatters';
 import { generateTicketPdf } from '../services/tickets/ticketPdf';
 import {
-  getTicketRepositoryDiagnostics,
-  ticketRepository,
-  type TicketRepositoryDiagnostics
+  ticketRepository
 } from '../services/tickets/ticketRepositoryAdapter';
 import type { TicketRecord } from '../types/database';
 import type { Airport, Ticket, TicketSearchInput, TicketStatus } from '../types/ticket';
@@ -45,9 +43,6 @@ export function TicketsPage() {
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('idle');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [savedTickets, setSavedTickets] = useState<TicketRecord[]>([]);
-  const [repositoryDiagnostics, setRepositoryDiagnostics] = useState<TicketRepositoryDiagnostics>(
-    getTicketRepositoryDiagnostics()
-  );
   const [searchMessage, setSearchMessage] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
@@ -104,7 +99,6 @@ export function TicketsPage() {
   async function refreshSavedTickets() {
     const records = await ticketRepository.listTickets();
     setSavedTickets(records);
-    setRepositoryDiagnostics(getTicketRepositoryDiagnostics());
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -164,14 +158,12 @@ export function TicketsPage() {
       setIsSavingTicket(true);
       const record = await ticketRepository.createTicket(selectedTicket);
       await refreshSavedTickets();
-      const nextDiagnostics = getTicketRepositoryDiagnostics();
-      setRepositoryDiagnostics(nextDiagnostics);
       const alreadySaved = false;
 
     setSaveMessage(
       alreadySaved
         ? `Reserva ${record.locator} ja estava salva.`
-        : `Reserva ${record.locator} salva no repositório ${nextDiagnostics.activeRepository === 'supabase' ? 'Supabase' : 'local'}.`
+        : `Reserva ${record.locator} salva em bilhetes.`
       );
     } catch (error) {
       setSaveMessage(error instanceof Error ? error.message : 'Nao foi possivel salvar o bilhete.');
@@ -251,15 +243,12 @@ export function TicketsPage() {
         <PageHeader
           title="Bilhetes"
           description="Consulte, edite e acompanhe os bilhetes ja cadastrados."
-          badge="Repository"
         />
         <Button className="w-full sm:w-auto" onClick={() => navigate('/platform/tickets/import')}>
           <UploadCloud size={16} aria-hidden="true" />
           Importar emissao
         </Button>
       </div>
-
-      <RepositoryDiagnosticsBanner diagnostics={repositoryDiagnostics} />
 
       <Card>
         <CardHeader>
@@ -329,7 +318,7 @@ export function TicketsPage() {
                 </div>
                 <h2 className="mt-4 text-base font-semibold text-ink-900">Buscando reserva</h2>
                 <p className="mt-2 text-sm leading-6 text-ink-500">
-                  Estamos consultando o endpoint interno com os dados informados.
+                  Estamos consultando os dados informados.
                 </p>
               </div>
             </div>
@@ -369,7 +358,7 @@ export function TicketsPage() {
           <CardContent>
             <EmptyState
               title="Nao foi possivel buscar a reserva"
-              description={searchMessage ?? 'O endpoint interno retornou um erro inesperado. Revise os dados e tente novamente.'}
+              description={searchMessage ?? 'Nao foi possivel concluir a consulta. Revise os dados e tente novamente.'}
               actionLabel="Erro de consulta"
               icon={XCircle}
             />
@@ -382,7 +371,7 @@ export function TicketsPage() {
           <CardContent>
             <EmptyState
               title="Busque nos bilhetes cadastrados"
-              description="Preencha os campos para filtrar a lista de bilhetes salvos no repositorio."
+              description="Preencha os campos para filtrar a lista de bilhetes salvos."
               actionLabel="Lista de bilhetes"
               icon={Search}
             />
@@ -393,7 +382,6 @@ export function TicketsPage() {
       <SavedTicketsList
         actionMessage={ticketActionMessage}
         tickets={filteredSavedTickets}
-        repositoryMode={repositoryDiagnostics.activeRepository}
         onDeleteTicket={handleDeleteTicket}
         onEditTicket={setEditingTicket}
         onGeneratePdf={handleGeneratePdf}
@@ -422,37 +410,6 @@ export function TicketsPage() {
         />
       ) : null}
     </section>
-  );
-}
-
-type RepositoryDiagnosticsBannerProps = {
-  diagnostics: TicketRepositoryDiagnostics;
-};
-
-function RepositoryDiagnosticsBanner({ diagnostics }: RepositoryDiagnosticsBannerProps) {
-  const usingSupabase = diagnostics.activeRepository === 'supabase';
-
-  return (
-    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p className="text-sm font-semibold text-ink-900">Repositório de bilhetes</p>
-        <p className="mt-1 text-sm text-ink-500">
-          {usingSupabase
-            ? 'Persistência conectada ao Supabase.'
-            : 'Persistência usando armazenamento local de fallback.'}
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={usingSupabase ? 'green' : 'amber'}>
-          {usingSupabase ? 'Supabase' : 'Local fallback'}
-        </Badge>
-        {diagnostics.isFallbackActive ? (
-          <span className="text-xs font-medium text-amber-700">
-            Dados salvos localmente até o Supabase ficar disponível.
-          </span>
-        ) : null}
-      </div>
-    </div>
   );
 }
 
@@ -530,7 +487,7 @@ function TicketDetails({
               {ticket.passenger} {ticket.surname}
             </h2>
             <p className="mt-1 text-sm text-ink-500">
-              Localizador {ticket.locator} · {ticket.airline} · Provider {ticket.provider}
+              Localizador {ticket.locator} · {ticket.airline}
             </p>
           </div>
           <Badge tone={statusTone[ticket.status]}>{ticket.status}</Badge>
@@ -581,15 +538,13 @@ function TicketDetails({
       <Card>
         <CardHeader>
           <h2 className="text-base font-semibold text-ink-900">Resumo da reserva</h2>
-          <p className="text-sm text-ink-500">Dados mockados para futura integracao.</p>
+          <p className="text-sm text-ink-500">Principais informações da reserva.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <InfoRow label="Passageiro" value={`${ticket.passenger} ${ticket.surname}`} />
           <InfoRow label="Companhia" value={ticket.airline} />
-          <InfoRow label="Provider" value={ticket.provider} />
           <InfoRow label="Valor" value={formatCurrency(ticket.amount)} />
           <InfoRow label="Observacoes" value={ticket.observations} />
-          {ticket.rawResponse ? <InfoRow label="Raw response" value="Disponivel no mock" /> : null}
           {saveMessage ? <p className="text-sm font-medium text-brand-700">{saveMessage}</p> : null}
           {pdfError ? <p className="text-sm font-medium text-red-600">{pdfError}</p> : null}
           <Button className="w-full" disabled={isSaved || isSaving} onClick={onSaveTicket}>
@@ -613,7 +568,6 @@ function TicketDetails({
 type SavedTicketsListProps = {
   actionMessage: string | null;
   tickets: TicketRecord[];
-  repositoryMode: 'supabase' | 'local';
   onDeleteTicket: (ticket: TicketRecord) => void;
   onEditTicket: (ticket: TicketRecord) => void;
   onGeneratePdf: (ticket: TicketRecord) => void;
@@ -624,7 +578,6 @@ type SavedTicketsListProps = {
 function SavedTicketsList({
   actionMessage,
   tickets,
-  repositoryMode,
   onDeleteTicket,
   onEditTicket,
   onGeneratePdf,
@@ -636,9 +589,6 @@ function SavedTicketsList({
       <CardHeader>
         <h2 className="text-base font-semibold text-ink-900">Bilhetes salvos</h2>
         {actionMessage ? <p className="text-sm font-medium text-brand-700">{actionMessage}</p> : null}
-        <p className="text-sm text-ink-500">
-          Registros carregados do repositório {repositoryMode === 'supabase' ? 'Supabase' : 'local'}.
-        </p>
       </CardHeader>
       <CardContent>
         {tickets.length === 0 ? (
@@ -773,7 +723,7 @@ function TicketViewModal({
               {ticket.passenger} {ticket.surname}
             </p>
             <p className="mt-1 text-sm text-ink-500">
-              {ticket.airline} | Provider {ticket.provider} | Salvo em {formatDateTime(ticket.createdAt)}
+              {ticket.airline} | Salvo em {formatDateTime(ticket.createdAt)}
             </p>
           </div>
           <Badge tone={statusTone[ticket.status]}>{ticket.status}</Badge>

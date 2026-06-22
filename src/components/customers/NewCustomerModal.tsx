@@ -186,7 +186,7 @@ export function NewCustomerModal({
               {mode === 'edit' ? 'Editar cliente' : 'Novo cliente'}
             </h2>
             <p className="mt-1 text-sm text-ink-500">
-              Dados salvos no repositório ativo com fallback local.
+              Dados do cliente, contato, preferencias e observacoes.
             </p>
           </div>
           <button

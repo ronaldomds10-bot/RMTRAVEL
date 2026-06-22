@@ -18,14 +18,14 @@ export function PagePlaceholder({ page }: PagePlaceholderProps) {
 
   return (
     <section className="space-y-6">
-      <PageHeader title={page.title} description={page.description} badge="Tela planejada" />
+      <PageHeader title={page.title} description={page.description} />
 
       <Card>
         <CardContent>
           <EmptyState
             title={`${page.title} em estruturação`}
-            description="Esta rota já está preparada no layout principal. Conteúdo, filtros, tabelas e ações serão especificados antes de qualquer integração."
-            actionLabel="Ação visual"
+            description="Em breve esta area recebera recursos para apoiar sua operacao."
+            actionLabel="Em breve"
           />
         </CardContent>
       </Card>
@@ -36,7 +36,7 @@ export function PagePlaceholder({ page }: PagePlaceholderProps) {
             <CardContent>
               <p className="text-sm font-semibold text-ink-900">{feature}</p>
               <p className="mt-2 text-sm leading-5 text-ink-500">
-                Funcionalidade prevista para evoluir esta area sem regras complexas nesta etapa.
+                Recurso previsto para ampliar o acompanhamento desta area.
               </p>
             </CardContent>
           </Card>
@@ -48,7 +48,7 @@ export function PagePlaceholder({ page }: PagePlaceholderProps) {
           <div>
             <h2 className="text-base font-semibold text-ink-900">Próximas decisões da tela</h2>
             <p className="mt-1 text-sm text-ink-500">
-              Botões abaixo são exemplos visuais e ainda não executam ações.
+              Recursos previstos para as proximas melhorias desta area.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

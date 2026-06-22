@@ -134,7 +134,7 @@ export function NotificationsPage() {
   async function loadNotificationsData() {
     if (!hasSupabaseConfig || !supabase) {
       setData(emptyData);
-      setError('Supabase nao esta configurado para carregar notificacoes.');
+      setError('Nao foi possivel carregar notificacoes.');
       setIsLoading(false);
       return;
     }
@@ -236,8 +236,7 @@ export function NotificationsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="Notificacoes"
-          description="Central operacional gerada a partir dos dados autenticados da conta."
-          badge="Supabase RLS"
+          description="Central operacional gerada a partir dos dados da conta."
         />
         <Button className="w-full sm:w-auto" disabled={isLoading} onClick={loadNotificationsData}>
           <RefreshCw size={16} aria-hidden="true" />

@@ -34,7 +34,7 @@ const settingsCards = [
   },
   {
     title: 'Minha assinatura',
-    description: 'Consulte o estado visual do plano atual.',
+    description: 'Consulte o estado do plano atual.',
     path: '/platform/settings/subscription',
     icon: CreditCard
   },
@@ -69,7 +69,6 @@ export function SettingsHomePage() {
       <PageHeader
         title="Configurações"
         description="Gerencie perfil, empresa, assinatura e canais de atendimento."
-        badge="Base"
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -146,7 +145,7 @@ export function ProfileSettingsPage() {
       );
       setProfile(saved);
       setFormValues(saved);
-      setMessage('Perfil salvo no Supabase.');
+      setMessage('Perfil salvo.');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Nao foi possivel salvar perfil.');
     } finally {
@@ -247,7 +246,7 @@ export function CompanySettingsPage() {
       );
       setCompany(saved);
       setFormValues(saved);
-      setMessage('Dados da empresa salvos no Supabase.');
+      setMessage('Dados da empresa salvos.');
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : 'Nao foi possivel salvar dados da empresa.'
@@ -294,7 +293,7 @@ export function CompanySettingsPage() {
           onChange={(value) => updateField('logoUrl', value)}
         />
         <p className="text-sm leading-6 text-ink-500">
-          CNPJ, telefone e site ainda nao existem no schema reutilizado de empresa.
+          Mantenha os dados principais da empresa sempre atualizados.
         </p>
         <Button className="w-full sm:w-auto" disabled={isLoading || isSaving} type="submit">
           <Save size={16} aria-hidden="true" />
@@ -310,21 +309,20 @@ export function SubscriptionSettingsPage() {
     <section className="space-y-6">
       <PageHeader
         title="Minha assinatura"
-        description="Acompanhe o estado visual do plano da conta."
-        badge="Visual"
+        description="Acompanhe o estado do plano da conta."
       />
       <Card>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <InfoBlock label="Plano atual" value="Plano visual" />
-          <InfoBlock label="Status" value="Ativo visual" />
+          <InfoBlock label="Plano atual" value="Plano atual" />
+          <InfoBlock label="Status" value="Ativo" />
         </CardContent>
       </Card>
       <Card>
         <CardContent>
           <EmptyState
             icon={CreditCard}
-            title="Gestão de assinatura será integrada futuramente."
-            description="Nenhuma cobrança real foi criada nesta etapa."
+            title="Gestao de assinatura"
+            description="Consulte os canais de atendimento para ajustes no plano."
             actionLabel="Informativo"
           />
         </CardContent>
@@ -339,7 +337,6 @@ export function SupportSettingsPage() {
       <PageHeader
         title="Atendimento"
         description="Canais para solicitar ajuda com a plataforma."
-        badge="Suporte"
       />
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
@@ -385,7 +382,7 @@ function SettingsFormShell({
 }) {
   return (
     <section className="space-y-6">
-      <PageHeader title={title} description={description} badge="Supabase" />
+      <PageHeader title={title} description={description} />
       {isLoading ? (
         <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-ink-600">
           Carregando configuracoes...

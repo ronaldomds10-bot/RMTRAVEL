@@ -13,11 +13,7 @@ import { Card, CardContent } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { formatCurrency } from '../lib/formatters';
-import {
-  customerRepository,
-  getCustomerRepositoryDiagnostics,
-  type CustomerRepositoryDiagnostics
-} from '../services/customers/customerRepositoryAdapter';
+import { customerRepository } from '../services/customers/customerRepositoryAdapter';
 import type { Customer, CustomerRecord, CustomerStatus, CustomerTag } from '../types/customer';
 
 export function CustomersPage() {
@@ -30,9 +26,6 @@ export function CustomersPage() {
   const [viewingCustomer, setViewingCustomer] = useState<CustomerRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
-  const [repositoryDiagnostics, setRepositoryDiagnostics] = useState<CustomerRepositoryDiagnostics>(
-    getCustomerRepositoryDiagnostics()
-  );
 
   useEffect(() => {
     refreshCustomers();
@@ -70,7 +63,6 @@ export function CustomersPage() {
     setIsLoading(true);
     const records = await customerRepository.listCustomers();
     setCustomers(records);
-    setRepositoryDiagnostics(getCustomerRepositoryDiagnostics());
     setIsLoading(false);
   }
 
@@ -147,15 +139,12 @@ export function CustomersPage() {
         <PageHeader
           title="Clientes"
           description="Central para consultar clientes, acompanhar pendencias e executar atendimento."
-          badge={repositoryDiagnostics.activeRepository === 'supabase' ? 'Supabase' : 'Local fallback'}
         />
         <Button className="w-full sm:w-auto sm:shrink-0" onClick={() => setIsCreateModalOpen(true)}>
           <Plus size={16} aria-hidden="true" />
           Novo cliente
         </Button>
       </div>
-
-      <RepositoryDiagnosticsBanner diagnostics={repositoryDiagnostics} />
 
       {message ? (
         <div className="rounded-lg border border-brand-100 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-700">
@@ -230,32 +219,6 @@ export function CustomersPage() {
         />
       ) : null}
     </section>
-  );
-}
-
-type RepositoryDiagnosticsBannerProps = {
-  diagnostics: CustomerRepositoryDiagnostics;
-};
-
-function RepositoryDiagnosticsBanner({ diagnostics }: RepositoryDiagnosticsBannerProps) {
-  const usingSupabase = diagnostics.activeRepository === 'supabase';
-
-  return (
-    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p className="text-sm font-semibold text-ink-900">Repositorio de clientes</p>
-        <p className="mt-1 text-sm text-ink-500">
-          {usingSupabase
-            ? 'Persistencia conectada ao Supabase.'
-            : 'Persistencia usando armazenamento local de fallback.'}
-        </p>
-      </div>
-      {diagnostics.isFallbackActive ? (
-        <span className="text-xs font-medium text-amber-700">
-          Dados salvos localmente ate o Supabase ficar disponivel.
-        </span>
-      ) : null}
-    </div>
   );
 }
 

@@ -3,7 +3,6 @@ import { type FormEvent, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { BrandMark } from '../components/BrandMark';
-import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { navigationGroups } from '../data/navigation';
 import { platformPages } from '../data/pages';
@@ -91,9 +90,7 @@ export function PlatformLayout() {
               <p className="truncate text-sm font-semibold text-ink-900">
                 {currentPage?.title ?? 'RMTRAVEL'}
               </p>
-              <p className="truncate text-xs text-ink-500">
-                Estrutura SaaS inicial sem integrações
-              </p>
+              <p className="truncate text-xs text-ink-500">Área de trabalho</p>
             </div>
 
             <form
@@ -172,7 +169,6 @@ function SidebarContent({ onNavigate, onSubscriptionClick }: SidebarContentProps
               <p className="text-sm font-semibold text-brand-900">Workspace</p>
               <p className="mt-1 text-xs text-brand-700">RMTRAVEL inicial</p>
             </div>
-            <Badge tone="green">Mock</Badge>
           </div>
         </div>
       </div>
@@ -214,10 +210,10 @@ function SidebarContent({ onNavigate, onSubscriptionClick }: SidebarContentProps
         <div className="rounded-lg bg-slate-50 p-3">
           <p className="text-sm font-semibold text-ink-900">Ambiente autenticado</p>
           <p className="mt-1 text-xs leading-5 text-ink-500">
-            Sessao Supabase ativa para acessar a plataforma.
+            Sessao ativa para acessar a plataforma.
           </p>
           <Button className="mt-3 w-full" size="sm" variant="secondary" onClick={handleSubscriptionClick}>
-            Ver plano visual
+            Ver plano
           </Button>
         </div>
       </div>

@@ -165,7 +165,6 @@ export function SalesPage() {
         <PageHeader
           title="Vendas"
           description="Registro local de vendas vinculando clientes e bilhetes existentes."
-          badge="Repository local"
         />
         <Button className="w-full sm:w-auto" onClick={() => setIsCreateModalOpen(true)}>
           <Plus size={16} aria-hidden="true" />
@@ -184,7 +183,7 @@ export function SalesPage() {
       <Card>
         <CardHeader>
           <h2 className="text-base font-semibold text-ink-900">Vendas registradas</h2>
-          <p className="text-sm text-ink-500">{sales.length} vendas no repository local.</p>
+          <p className="text-sm text-ink-500">{sales.length} vendas encontradas.</p>
         </CardHeader>
         <CardContent>
           {sales.length === 0 ? (

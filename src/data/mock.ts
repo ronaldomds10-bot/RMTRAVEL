@@ -56,7 +56,7 @@ export const dashboardMetrics: DashboardMetric[] = [
   {
     label: 'Clientes ativos',
     value: '342',
-    change: 'Base mockada',
+    change: 'Clientes cadastrados',
     tone: 'blue',
     icon: UsersRound,
     path: '/platform/customers'
@@ -72,7 +72,7 @@ export const dashboardMetrics: DashboardMetric[] = [
   {
     label: 'Operacoes pendentes',
     value: '18',
-    change: 'Sem integracao',
+    change: 'Acompanhar ajustes',
     tone: 'slate',
     icon: ClipboardCheck,
     path: '/platform/site'

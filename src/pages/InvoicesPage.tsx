@@ -43,12 +43,10 @@ export function InvoicesPage() {
       const nextData = await financialRepository.getFinancialData();
       setData(nextData);
       setStatus('loaded');
-    } catch (error) {
+    } catch {
       setData(null);
       setStatus('error');
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel carregar as faturas.'
-      );
+      setErrorMessage('Nao foi possivel carregar as faturas.');
     }
   }
 
@@ -112,7 +110,7 @@ export function InvoicesPage() {
       {
         label: 'Vencido',
         value: formatCurrency(0),
-        helper: 'Sem data de vencimento em sales',
+        helper: 'Sem vencimentos em aberto',
         icon: AlertCircle
       }
     ];
@@ -125,8 +123,7 @@ export function InvoicesPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="Faturas"
-          description="Acompanhe vendas como faturas e recebiveis usando os registros de sales."
-          badge="Supabase"
+          description="Acompanhe vendas como faturas e recebiveis."
         />
         <Button
           className="w-full sm:w-auto sm:shrink-0"
@@ -150,7 +147,7 @@ export function InvoicesPage() {
           <CardContent>
             <EmptyState
               title="Nao foi possivel carregar as faturas"
-              description={errorMessage ?? 'Verifique a configuracao do Supabase e tente novamente.'}
+              description={errorMessage ?? 'Tente novamente em instantes.'}
               actionLabel="Erro de carregamento"
             />
           </CardContent>
@@ -162,7 +159,7 @@ export function InvoicesPage() {
           <CardContent>
             <EmptyState
               title="Sem faturas para exibir"
-              description="Quando houver registros na tabela sales, as faturas serao exibidas automaticamente."
+              description="Quando houver vendas cadastradas, as faturas serao exibidas automaticamente."
               actionLabel="Aguardando vendas"
             />
           </CardContent>
@@ -183,7 +180,7 @@ export function InvoicesPage() {
                 <div>
                   <h2 className="text-base font-semibold text-ink-900">Faturas e recebiveis</h2>
                   <p className="mt-1 text-sm text-ink-500">
-                    Vendas registradas em sales com filtros por status, pagamento e cliente.
+                    Vendas registradas com filtros por status, pagamento e cliente.
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[680px]">

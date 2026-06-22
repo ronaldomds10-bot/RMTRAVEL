@@ -52,12 +52,10 @@ export function FinancialPage() {
       const nextData = await financialRepository.getFinancialData();
       setData(nextData);
       setStatus('loaded');
-    } catch (error) {
+    } catch {
       setData(null);
       setStatus('error');
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel carregar o financeiro.'
-      );
+      setErrorMessage('Nao foi possivel carregar o financeiro.');
     }
   }
 
@@ -102,19 +100,19 @@ export function FinancialPage() {
       {
         label: 'Receita',
         value: formatCurrency(data.summary.totalRevenue),
-        helper: 'Soma de sale_amount',
+        helper: 'Soma das vendas',
         icon: BadgeDollarSign
       },
       {
         label: 'Custo',
         value: formatCurrency(data.summary.totalCost),
-        helper: 'Soma de cost_amount',
+        helper: 'Soma dos custos',
         icon: ReceiptText
       },
       {
         label: 'Lucro',
         value: formatCurrency(data.summary.totalProfit),
-        helper: 'Soma de profit_amount',
+        helper: 'Lucro total',
         icon: TrendingUp
       },
       {
@@ -146,7 +144,6 @@ export function FinancialPage() {
         <PageHeader
           title="Financeiro"
           description="Acompanhe receitas, custos, lucro e pagamentos das vendas."
-          badge="Supabase"
         />
         <Button
           className="w-full sm:w-auto sm:shrink-0"
@@ -170,7 +167,7 @@ export function FinancialPage() {
           <CardContent>
             <EmptyState
               title="Nao foi possivel carregar o financeiro"
-              description={errorMessage ?? 'Verifique a configuracao do Supabase e tente novamente.'}
+              description={errorMessage ?? 'Tente novamente em instantes.'}
               actionLabel="Erro de carregamento"
             />
           </CardContent>
@@ -182,7 +179,7 @@ export function FinancialPage() {
           <CardContent>
             <EmptyState
               title="Sem vendas para exibir"
-              description="Quando houver registros na tabela sales, as metricas e a lista financeira serao preenchidas automaticamente."
+              description="Quando houver vendas cadastradas, as metricas e a lista financeira serao preenchidas automaticamente."
               actionLabel="Aguardando vendas"
             />
           </CardContent>

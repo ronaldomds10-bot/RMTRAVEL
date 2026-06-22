@@ -27,7 +27,7 @@ export function CustomerSummaryCards({ customers }: CustomerSummaryCardsProps) {
     {
       label: 'Total de clientes',
       value: String(totalCustomers),
-      helper: 'Base mockada',
+      helper: 'Clientes cadastrados',
       icon: UsersRound
     },
     {
@@ -39,7 +39,7 @@ export function CustomerSummaryCards({ customers }: CustomerSummaryCardsProps) {
     {
       label: 'Viagem em andamento',
       value: String(customersTraveling),
-      helper: 'Acompanhamento visual',
+      helper: 'Em acompanhamento',
       icon: Plane
     },
     {

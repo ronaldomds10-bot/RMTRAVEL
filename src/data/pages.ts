@@ -99,7 +99,7 @@ export const platformPages: PlatformPage[] = [
   {
     path: '/platform/settings/subscription',
     title: 'Minha assinatura',
-    description: 'Plano e status visual da assinatura.'
+    description: 'Plano e status da assinatura.'
   },
   {
     path: '/platform/settings/support',
@@ -139,7 +139,7 @@ export const platformPages: PlatformPage[] = [
   {
     path: '/platform/fornecedores',
     title: 'Fornecedores',
-    description: 'Base inicial para gestão de fornecedores.'
+    description: 'Gestão de fornecedores.'
   },
   {
     path: '/platform/voajet-resolve',

@@ -11,7 +11,6 @@ export function DashboardPage() {
       <PageHeader
         title="Painel"
         description="Visão inicial para organizar operações, clientes, bilhetes e indicadores antes das telas definitivas."
-        badge="Ambiente mockado"
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -81,7 +80,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <h2 className="text-base font-semibold text-ink-900">Próximos itens</h2>
-            <p className="text-sm text-ink-500">Lista mockada para guiar a construção.</p>
+            <p className="text-sm text-ink-500">Atividades recentes da operação.</p>
           </CardHeader>
           <CardContent className="space-y-4">
             {upcomingItems.map((item) => (
@@ -105,7 +104,7 @@ export function DashboardPage() {
       <Card>
         <CardHeader>
           <h2 className="text-base font-semibold text-ink-900">Atividades recentes</h2>
-          <p className="text-sm text-ink-500">Eventos simulados para validar hierarquia visual.</p>
+          <p className="text-sm text-ink-500">Eventos recentes para acompanhar a operação.</p>
         </CardHeader>
         <CardContent>
           <div className="divide-y divide-slate-100">

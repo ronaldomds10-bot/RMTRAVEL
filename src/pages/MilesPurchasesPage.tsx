@@ -89,10 +89,8 @@ export function MilesPurchasesPage() {
       setPurchases(purchaseRecords);
       setPrograms(programRecords);
       setSuppliers(supplierRecords);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel carregar compras de milhas.'
-      );
+    } catch {
+      setErrorMessage('Nao foi possivel carregar compras de milhas.');
     } finally {
       setIsLoading(false);
     }
@@ -121,8 +119,8 @@ export function MilesPurchasesPage() {
       setIsModalOpen(false);
       setEditingPurchase(null);
       await refreshPage();
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Nao foi possivel salvar a compra.');
+    } catch {
+      setErrorMessage('Nao foi possivel salvar a compra.');
     }
   }
 
@@ -140,8 +138,8 @@ export function MilesPurchasesPage() {
       await milesPurchaseRepository.deletePurchase(purchase.id);
       setMessage('Compra de milhas excluida.');
       await refreshPage();
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Nao foi possivel excluir a compra.');
+    } catch {
+      setErrorMessage('Nao foi possivel excluir a compra.');
     }
   }
 
@@ -151,7 +149,6 @@ export function MilesPurchasesPage() {
         <PageHeader
           title="Compras de milhas"
           description="Controle compras, fornecedores, custos e status por programa."
-          badge="Supabase"
         />
         <Button className="w-full sm:w-auto sm:shrink-0" onClick={handleNewPurchase}>
           <Plus size={16} aria-hidden="true" />

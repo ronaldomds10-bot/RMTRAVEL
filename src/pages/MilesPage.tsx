@@ -62,10 +62,8 @@ export function MilesPage() {
       setErrorMessage(null);
       const records = await milesProgramRepository.listPrograms();
       setPrograms(records);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel carregar programas de milhas.'
-      );
+    } catch {
+      setErrorMessage('Nao foi possivel carregar programas de milhas.');
     } finally {
       setIsLoading(false);
     }
@@ -126,10 +124,8 @@ export function MilesPage() {
 
       resetForm();
       await refreshPrograms();
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel salvar o programa de milhas.'
-      );
+    } catch {
+      setErrorMessage('Nao foi possivel salvar o programa de milhas.');
     } finally {
       setIsSaving(false);
     }
@@ -151,10 +147,8 @@ export function MilesPage() {
         resetForm();
       }
       await refreshPrograms();
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel excluir o programa de milhas.'
-      );
+    } catch {
+      setErrorMessage('Nao foi possivel excluir o programa de milhas.');
     }
   }
 
@@ -164,7 +158,6 @@ export function MilesPage() {
         <PageHeader
           title="Milhas"
           description="Organize os programas de milhas usados nas suas emissões."
-          badge="Supabase"
         />
         <Button
           className="w-full sm:w-auto sm:shrink-0"
@@ -297,7 +290,7 @@ export function MilesPage() {
                 {editingProgram ? 'Editar programa' : 'Novo programa'}
               </h2>
               <p className="text-sm text-ink-500">
-                Dados persistidos no Supabase com RLS por usuario.
+                Dados do programa, titular, saldo e validade.
               </p>
             </div>
             {editingProgram ? (

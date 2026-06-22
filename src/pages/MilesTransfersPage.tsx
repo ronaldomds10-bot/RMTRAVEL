@@ -87,12 +87,8 @@ export function MilesTransfersPage() {
       ]);
       setTransfers(transferRecords);
       setPrograms(programRecords);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Nao foi possivel carregar transferencias de milhas.'
-      );
+    } catch {
+      setErrorMessage('Nao foi possivel carregar transferencias de milhas.');
     } finally {
       setIsLoading(false);
     }
@@ -126,10 +122,8 @@ export function MilesTransfersPage() {
       setIsModalOpen(false);
       setEditingTransfer(null);
       await refreshPage();
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel salvar a transferencia.'
-      );
+    } catch {
+      setErrorMessage('Nao foi possivel salvar a transferencia.');
     }
   }
 
@@ -147,10 +141,8 @@ export function MilesTransfersPage() {
       await milesTransferRepository.deleteTransfer(transfer.id);
       setMessage('Transferencia de milhas excluida.');
       await refreshPage();
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel excluir a transferencia.'
-      );
+    } catch {
+      setErrorMessage('Nao foi possivel excluir a transferencia.');
     }
   }
 
@@ -160,7 +152,6 @@ export function MilesTransfersPage() {
         <PageHeader
           title="Transferencia de milhas"
           description="Controle transferencias entre programas, bonus e status operacional."
-          badge="Supabase"
         />
         <Button className="w-full sm:w-auto sm:shrink-0" onClick={handleNewTransfer}>
           <Plus size={16} aria-hidden="true" />

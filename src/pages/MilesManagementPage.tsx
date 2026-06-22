@@ -78,10 +78,8 @@ export function MilesManagementPage() {
       setErrorMessage(null);
       const records = await milesProgramRepository.listPrograms();
       setPrograms(records);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel carregar programas de milhas.'
-      );
+    } catch {
+      setErrorMessage('Nao foi possivel carregar programas de milhas.');
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +91,6 @@ export function MilesManagementPage() {
         <PageHeader
           title="Gestao de milhas"
           description="Visao consolidada dos saldos e vencimentos dos programas cadastrados."
-          badge="Supabase"
         />
         <Button className="w-full sm:w-auto sm:shrink-0" onClick={() => navigate('/platform/miles')}>
           Ir para Milhas

@@ -128,7 +128,7 @@ export function MonitoringPage() {
   async function loadMonitoringData() {
     if (!hasSupabaseConfig || !supabase) {
       setData(emptyData);
-      setError('Supabase nao esta configurado para carregar o monitoramento.');
+      setError('Nao foi possivel carregar o monitoramento.');
       setIsLoading(false);
       return;
     }
@@ -230,8 +230,7 @@ export function MonitoringPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="Monitoramento"
-          description="Alertas operacionais baseados nos dados autenticados da conta."
-          badge="Supabase RLS"
+          description="Alertas operacionais baseados nos dados da conta."
         />
         <Button className="w-full sm:w-auto" disabled={isLoading} onClick={loadMonitoringData}>
           <RefreshCw size={16} aria-hidden="true" />

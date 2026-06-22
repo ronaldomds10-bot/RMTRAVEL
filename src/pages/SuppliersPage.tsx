@@ -70,8 +70,8 @@ export function SuppliersPage() {
     try {
       const records = await supplierRepository.listSuppliers();
       setSuppliers(records);
-    } catch (currentError) {
-      setError(currentError instanceof Error ? currentError.message : 'Erro ao listar fornecedores.');
+    } catch {
+      setError('Erro ao listar fornecedores.');
     } finally {
       setIsLoading(false);
     }
@@ -101,8 +101,8 @@ export function SuppliersPage() {
       setIsModalOpen(false);
       setEditingSupplier(null);
       await refreshSuppliers();
-    } catch (currentError) {
-      setError(currentError instanceof Error ? currentError.message : 'Erro ao salvar fornecedor.');
+    } catch {
+      setError('Erro ao salvar fornecedor.');
     }
   }
 
@@ -119,8 +119,8 @@ export function SuppliersPage() {
       await supplierRepository.deleteSupplier(supplier.id);
       setMessage(`Fornecedor ${supplier.name} excluido.`);
       await refreshSuppliers();
-    } catch (currentError) {
-      setError(currentError instanceof Error ? currentError.message : 'Erro ao excluir fornecedor.');
+    } catch {
+      setError('Erro ao excluir fornecedor.');
     }
   }
 
@@ -130,7 +130,6 @@ export function SuppliersPage() {
         <PageHeader
           title="Fornecedores"
           description="Cadastro e acompanhamento de fornecedores da operacao."
-          badge="Supabase"
         />
         <Button className="w-full sm:w-auto sm:shrink-0" onClick={handleNewSupplier}>
           <Plus size={16} aria-hidden="true" />

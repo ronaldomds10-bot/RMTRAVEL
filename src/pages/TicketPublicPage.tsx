@@ -195,7 +195,6 @@ function TicketPublicDetails({ ticket }: TicketPublicDetailsProps) {
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="flex flex-wrap gap-2">
               <Badge tone={statusTone[ticket.status]}>{ticket.status}</Badge>
-              <Badge tone="slate">{ticket.provider}</Badge>
             </div>
             <div className="mt-5 space-y-3">
               <Button className="w-full" onClick={handleDownloadPdf} disabled={isGeneratingPdf}>
@@ -271,8 +270,8 @@ function TicketNotFound({ searchedId }: TicketNotFoundProps) {
           </div>
           <h1 className="mt-4 text-xl font-semibold text-ink-900">Bilhete nao encontrado</h1>
           <p className="mt-2 text-sm leading-6 text-ink-500">
-            Nao encontramos nenhum bilhete mockado para "{searchedId || 'sem identificador'}".
-            Voce pode testar com TCK-2001 ou RM7LIS.
+            Nao encontramos nenhum bilhete para "{searchedId || 'sem identificador'}".
+            Verifique o codigo informado e tente novamente.
           </p>
           <Link to="/platform/tickets">
             <Button className="mt-5" variant="secondary">Voltar para consulta</Button>

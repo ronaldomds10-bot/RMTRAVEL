@@ -22,14 +22,14 @@ type AirlineOption = {
 };
 
 const airlineOptions: AirlineOption[] = [
-  { id: 'azul', label: 'Azul', description: 'Importacao via provider Azul.' },
-  { id: 'gol', label: 'GOL', description: 'Importacao via provider GOL.' },
-  { id: 'latam', label: 'LATAM', description: 'Importacao via provider LATAM.' },
-  { id: 'iberia', label: 'Iberia', description: 'Importacao via provider Iberia.' },
+  { id: 'azul', label: 'Azul', description: 'Importe dados de uma reserva Azul.' },
+  { id: 'gol', label: 'GOL', description: 'Importe dados de uma reserva GOL.' },
+  { id: 'latam', label: 'LATAM', description: 'Importe dados de uma reserva LATAM.' },
+  { id: 'iberia', label: 'Iberia', description: 'Importe dados de uma reserva Iberia.' },
   {
     id: 'american',
     label: 'American Airlines',
-    description: 'Importacao via provider American.'
+    description: 'Importe dados de uma reserva American Airlines.'
   }
 ];
 
@@ -104,7 +104,6 @@ export function TicketImportPage() {
       <PageHeader
         title="Importe sua emissão com o código da reserva"
         description="Agora é possível importar suas emissões diretamente com os dados das companhias aéreas"
-        badge="Importar emissão"
       />
 
       <Card>
@@ -148,7 +147,7 @@ export function TicketImportPage() {
 
             <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
               <label>
-                <span className="text-sm font-semibold text-ink-700">record_locator</span>
+                <span className="text-sm font-semibold text-ink-700">Código da reserva</span>
                 <input
                   className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm uppercase text-ink-900 outline-none transition placeholder:normal-case placeholder:text-slate-400 focus:border-brand-300 focus:ring-4 focus:ring-brand-50"
                   disabled={isLoading}
@@ -158,7 +157,7 @@ export function TicketImportPage() {
                 />
               </label>
               <label>
-                <span className="text-sm font-semibold text-ink-700">passenger_last_name</span>
+                <span className="text-sm font-semibold text-ink-700">Sobrenome do passageiro</span>
                 <input
                   className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-400 focus:border-brand-300 focus:ring-4 focus:ring-brand-50"
                   disabled={isLoading}

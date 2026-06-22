@@ -36,12 +36,10 @@ export function AnalyticsPage() {
       const nextSummary = await analyticsRepository.getAnalyticsSummary();
       setSummary(nextSummary);
       setStatus('loaded');
-    } catch (error) {
+    } catch {
       setSummary(null);
       setStatus('error');
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Nao foi possivel carregar as analises.'
-      );
+      setErrorMessage('Nao foi possivel carregar as analises.');
     }
   }
 
@@ -59,13 +57,13 @@ export function AnalyticsPage() {
       {
         label: 'Total de bilhetes',
         value: summary.totalTickets.toString(),
-        helper: 'Bilhetes salvos no Supabase',
+        helper: 'Bilhetes cadastrados',
         icon: Ticket
       },
       {
         label: 'Total de clientes',
         value: summary.totalCustomers.toString(),
-        helper: 'Clientes do usuario autenticado',
+        helper: 'Clientes cadastrados',
         icon: UsersRound
       },
       {
@@ -77,7 +75,7 @@ export function AnalyticsPage() {
       {
         label: 'Receita total',
         value: formatCurrency(summary.totalRevenue),
-        helper: 'Soma de sale_amount',
+        helper: 'Soma das vendas',
         icon: CreditCard
       },
       {
@@ -95,7 +93,6 @@ export function AnalyticsPage() {
         <PageHeader
           title="Análise e Gestão"
           description="Acompanhe os principais números da sua operação."
-          badge="Supabase"
         />
         <Button
           className="w-full sm:w-auto sm:shrink-0"
@@ -119,7 +116,7 @@ export function AnalyticsPage() {
           <CardContent>
             <EmptyState
               title="Nao foi possivel carregar as analises"
-              description={errorMessage ?? 'Verifique a configuracao do Supabase e tente novamente.'}
+              description={errorMessage ?? 'Tente novamente em instantes.'}
               actionLabel="Erro de carregamento"
             />
           </CardContent>
@@ -131,7 +128,7 @@ export function AnalyticsPage() {
           <CardContent>
             <EmptyState
               title="Sem dados para analisar"
-              description="Quando houver bilhetes, clientes ou vendas no Supabase, os indicadores desta tela serao preenchidos automaticamente."
+              description="Quando houver bilhetes, clientes ou vendas cadastrados, os indicadores desta tela serao preenchidos automaticamente."
               actionLabel="Aguardando dados"
             />
           </CardContent>
@@ -151,7 +148,7 @@ export function AnalyticsPage() {
               <CardHeader>
                 <h2 className="text-base font-semibold text-ink-900">Resumo da operação</h2>
                 <p className="text-sm text-ink-500">
-                  Visao consolidada dos dados disponiveis para o usuario autenticado.
+                  Visao consolidada dos dados disponiveis para sua conta.
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -171,7 +168,6 @@ export function AnalyticsPage() {
                       : 0
                   )}
                 />
-                <SummaryRow label="Origem dos dados" value="Supabase com RLS" />
               </CardContent>
             </Card>
 
